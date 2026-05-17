@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { DesktopViewer } from "./DesktopViewer";
 import { CreateComputerPopover } from "./CreateComputerPopover";
@@ -133,8 +132,6 @@ export function DashboardShell({
   initialApiKeys: ApiKey[];
   initialComputerId?: string;
 }) {
-  const router = useRouter();
-
   // If a computer ID was passed (from /dashboard/computers/:id), use it
   const initialSelected = initialComputerId && initialComputers.some((c) => c.id === initialComputerId)
     ? initialComputerId
@@ -191,22 +188,22 @@ export function DashboardShell({
   const goHome = useCallback(() => {
     setSelectedComputerId(null);
     setView("home");
-    router.push("/dashboard", { scroll: false });
-  }, [router]);
+    window.history.pushState(null, "", "/dashboard");
+  }, []);
 
   const handleSelectComputer = useCallback((id: string) => {
     setSelectedComputerId(id);
     setView("computer");
-    router.push(`/dashboard/computers/${id}`, { scroll: false });
-  }, [router]);
+    window.history.pushState(null, "", `/dashboard/computers/${id}`);
+  }, []);
 
   const handleCreated = useCallback((computer: Computer) => {
     setComputers((prev) => [computer, ...prev]);
     setSelectedComputerId(computer.id);
     setView("computer");
     setShowCreate(false);
-    router.push(`/dashboard/computers/${computer.id}`, { scroll: false });
-  }, [router]);
+    window.history.pushState(null, "", `/dashboard/computers/${computer.id}`);
+  }, []);
 
   const handleDelete = useCallback(async () => {
     if (!selectedComputerId) return;
@@ -247,6 +244,26 @@ export function DashboardShell({
       }
     } catch {}
   }, [selectedComputer]);
+
+  // Handle browser back/forward
+  useEffect(() => {
+    function handlePopState() {
+      const path = window.location.pathname;
+      const match = path.match(/\/dashboard\/computers\/([^/]+)/);
+      if (match) {
+        const id = match[1];
+        if (computers.some((c) => c.id === id)) {
+          setSelectedComputerId(id);
+          setView("computer");
+        }
+      } else {
+        setSelectedComputerId(null);
+        setView("home");
+      }
+    }
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [computers]);
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
