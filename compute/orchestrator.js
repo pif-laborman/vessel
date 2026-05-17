@@ -115,6 +115,10 @@ function stopContainer(containerId) {
   containers.delete(containerId);
 }
 
+function restartContainer(containerId) {
+  execSync(`docker restart ${containerId}`, { timeout: 30000 });
+}
+
 function proxyToAgent(port, method, path, body) {
   return new Promise((resolve, reject) => {
     const opts = {
@@ -192,6 +196,21 @@ const server = http.createServer(async (req, res) => {
     }
     try {
       stopContainer(id);
+      return sendJson(res, 200, { ok: true });
+    } catch (err) {
+      return sendJson(res, 500, { error: err.message });
+    }
+  }
+
+  // Restart container
+  const restartMatch = url.pathname.match(/^\/containers\/([a-f0-9]+)\/restart$/);
+  if (req.method === "POST" && restartMatch) {
+    const id = restartMatch[1];
+    if (!containers.has(id)) {
+      return sendJson(res, 404, { error: "Container not found" });
+    }
+    try {
+      restartContainer(id);
       return sendJson(res, 200, { ok: true });
     } catch (err) {
       return sendJson(res, 500, { error: err.message });

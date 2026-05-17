@@ -169,6 +169,26 @@ export function DashboardShell({
     } catch {}
   }, [selectedComputerId]);
 
+  const handleClone = useCallback(async () => {
+    if (!selectedComputer) return;
+    try {
+      const res = await fetch("/api/computers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: `${selectedComputer.name} (copy)`,
+          cpu: selectedComputer.cpu,
+          ram: selectedComputer.ram,
+        }),
+      });
+      const data = await res.json();
+      if (data.id) {
+        setComputers((prev) => [data, ...prev]);
+        setSelectedComputerId(data.id);
+      }
+    } catch {}
+  }, [selectedComputer]);
+
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       const target = e.target as HTMLElement;
@@ -316,6 +336,7 @@ export function DashboardShell({
                   computerName={selectedComputer.name}
                   onDelete={handleDelete}
                   onRestart={handleRestart}
+                  onClone={handleClone}
                   onSettings={() => setShowSettings(true)}
                 />
               </div>

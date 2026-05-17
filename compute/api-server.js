@@ -272,6 +272,22 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // POST /v1/computers/:id/restart
+  const restartMatch = url.pathname.match(/^\/v1\/computers\/([^/]+)\/restart$/);
+  if (req.method === "POST" && restartMatch) {
+    const computerId = restartMatch[1];
+    const containerId = await getContainerId(computerId, userId);
+    if (!containerId) return sendJson(res, 404, { error: "Computer not found" });
+
+    try {
+      const orchRes = await orchRequest("POST", `/containers/${containerId}/restart`);
+      const orchData = JSON.parse(orchRes.body.toString());
+      return sendJson(res, orchRes.status, orchData);
+    } catch (err) {
+      return sendJson(res, 502, { error: err.message });
+    }
+  }
+
   // DELETE /v1/computers/:id
   const deleteMatch = url.pathname.match(/^\/v1\/computers\/([^/]+)$/);
   if (req.method === "DELETE" && deleteMatch) {

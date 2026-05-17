@@ -8,9 +8,10 @@ interface Props {
   onDelete: () => void;
   onRestart: () => void;
   onSettings: () => void;
+  onClone: () => void;
 }
 
-export function ComputerMenu({ computerId, computerName, onDelete, onRestart, onSettings }: Props) {
+export function ComputerMenu({ computerId, computerName, onDelete, onRestart, onSettings, onClone }: Props) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -121,7 +122,7 @@ export function ComputerMenu({ computerId, computerName, onDelete, onRestart, on
 
           {/* Clone */}
           <button
-            onClick={() => { setOpen(false); }}
+            onClick={() => { setOpen(false); onClone(); }}
             className="w-full flex items-center justify-between transition-colors"
             style={{
               padding: "8px 12px",
