@@ -3,13 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
-import { ApiKeysPanel } from "./ApiKeysPanel";
 import { DesktopViewer } from "./DesktopViewer";
 import { CreateComputerPopover } from "./CreateComputerPopover";
 import { ComputerMenu } from "./ComputerMenu";
-import { ComputerSettings } from "./ComputerSettings";
 import { HomeGrid } from "./HomeGrid";
 import { WorkspaceMenu } from "./WorkspaceMenu";
+import { UnifiedSettings } from "./UnifiedSettings";
 
 interface Profile {
   id: string;
@@ -40,7 +39,7 @@ interface ApiKey {
   revoked_at: string | null;
 }
 
-type View = "home" | "settings" | "computer";
+type View = "home" | "computer";
 
 function SidebarThumbnail({ computer, selected, onClick }: {
   computer: Computer;
@@ -140,7 +139,7 @@ export function DashboardShell({
     initialComputers.length > 0 ? initialComputers[0].id : null
   );
   const [showCreate, setShowCreate] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<string | null>(null);
 
   const displayName = profile?.display_name || user.email?.split("@")[0] || "User";
   const initials = displayName.charAt(0).toUpperCase();
@@ -260,7 +259,7 @@ export function DashboardShell({
           workspaces={workspaces}
           activeWorkspaceId={activeWorkspaceId}
           activeWorkspaceName={activeWorkspace?.name || null}
-          onSettings={() => setView("settings")}
+          onSettings={() => setSettingsTab("workspace")}
           onSwitchWorkspace={handleSwitchWorkspace}
           onCreateWorkspace={handleCreateWorkspace}
         />
@@ -364,7 +363,7 @@ export function DashboardShell({
                   onDelete={handleDelete}
                   onRestart={handleRestart}
                   onClone={handleClone}
-                  onSettings={() => setShowSettings(true)}
+                  onSettings={() => setSettingsTab(`computer:${selectedComputer.id}`)}
                 />
               </div>
             </div>
@@ -379,26 +378,6 @@ export function DashboardShell({
               />
             </div>
           </>
-        ) : view === "settings" ? (
-          <div className="flex-1 overflow-auto" style={{ padding: "24px" }}>
-            <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: "var(--text-lg)", marginBottom: "var(--space-6)" }}>Settings</h2>
-            <section style={{ marginBottom: "var(--space-10)" }}>
-              <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: "var(--text-base)", marginBottom: "var(--space-4)" }}>Profile</h3>
-              <div className="card" style={{ padding: "var(--space-4)" }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "var(--fill-action)", color: "var(--text-on-action)", fontFamily: "var(--font-display)", fontWeight: 500 }}>{initials}</div>
-                  <div>
-                    <div style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: "var(--text-sm)" }}>{displayName}</div>
-                    <div style={{ fontSize: "var(--text-xs)", color: "var(--text-tertiary)" }}>{user.email}</div>
-                  </div>
-                </div>
-              </div>
-            </section>
-            <section>
-              <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: "var(--text-base)", marginBottom: "var(--space-4)" }}>API Keys</h3>
-              <ApiKeysPanel initialKeys={initialApiKeys} />
-            </section>
-          </div>
         ) : (
           /* Home: computer grid with top bar */
           <HomeGrid
@@ -409,16 +388,28 @@ export function DashboardShell({
         )}
       </div>
 
-      {/* Settings modal */}
-      {showSettings && selectedComputer && (
-        <ComputerSettings
-          computer={selectedComputer}
-          onClose={() => setShowSettings(false)}
-          onDelete={() => { setShowSettings(false); handleDelete(); }}
-          onRename={(newName) => {
-            setComputers((prev) => prev.map((c) => c.id === selectedComputer.id ? { ...c, name: newName } : c));
-            setShowSettings(false);
+      {/* Unified settings modal */}
+      {settingsTab && (
+        <UnifiedSettings
+          workspaceName={activeWorkspace?.name || "Default"}
+          workspaceId={activeWorkspaceId}
+          displayName={displayName}
+          email={user.email || ""}
+          plan={plan}
+          initials={initials}
+          computers={computers}
+          apiKeys={initialApiKeys}
+          initialTab={settingsTab}
+          onClose={() => setSettingsTab(null)}
+          onDeleteComputer={(id) => {
+            fetch(`/api/computers/${id}`, { method: "DELETE" });
+            setComputers((prev) => prev.filter((c) => c.id !== id));
+            if (selectedComputerId === id) { setSelectedComputerId(null); setView("home"); }
           }}
+          onRenameComputer={(id, name) => {
+            setComputers((prev) => prev.map((c) => c.id === id ? { ...c, name } : c));
+          }}
+          onDeleteWorkspace={() => { setSettingsTab(null); }}
         />
       )}
     </div>
