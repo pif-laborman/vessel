@@ -25,7 +25,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-venv \
     nodejs \
     npm \
-    firefox-esr \
     fonts-liberation \
     fonts-dejavu-core \
     ca-certificates \
@@ -38,6 +37,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gnome-themes-extra \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Google Chrome
+RUN curl -fsSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /tmp/chrome.deb && \
+    apt-get update && apt-get install -y /tmp/chrome.deb && \
+    rm /tmp/chrome.deb && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install pre-built WhiteSur GTK theme (macOS Dark)
 COPY docker/themes/gtk/WhiteSur-Dark /usr/share/themes/WhiteSur-Dark
@@ -66,8 +70,8 @@ RUN mkdir -p /root/.config/xfce4/terminal && \
 
 # Plank dock config (macOS-style bottom dock)
 RUN mkdir -p /root/.config/plank/dock1/launchers && \
-    printf '[PlankDockPreferences]\nHideMode=3\nTheme=Transparent\nPosition=3\nIconSize=48\nDockItems=firefox-esr.dockitem;xfce4-terminal.dockitem;xfce4-file-manager.dockitem\n' > /root/.config/plank/dock1/settings && \
-    printf '[PlankDockItemPreferences]\nLauncher=file:///usr/share/applications/firefox-esr.desktop\n' > /root/.config/plank/dock1/launchers/firefox-esr.dockitem && \
+    printf '[PlankDockPreferences]\nHideMode=3\nTheme=Transparent\nPosition=3\nIconSize=48\nDockItems=google-chrome.dockitem;xfce4-terminal.dockitem;xfce4-file-manager.dockitem\n' > /root/.config/plank/dock1/settings && \
+    printf '[PlankDockItemPreferences]\nLauncher=file:///usr/share/applications/google-chrome.desktop\n' > /root/.config/plank/dock1/launchers/google-chrome.dockitem && \
     printf '[PlankDockItemPreferences]\nLauncher=file:///usr/share/applications/xfce4-terminal.desktop\n' > /root/.config/plank/dock1/launchers/xfce4-terminal.dockitem && \
     printf '[PlankDockItemPreferences]\nLauncher=file:///usr/share/applications/thunar.desktop\n' > /root/.config/plank/dock1/launchers/xfce4-file-manager.dockitem
 
