@@ -32,5 +32,8 @@ for i in $(seq 1 20); do
     sleep 0.5
 done
 
+# Start Plank dock (macOS-style bottom dock)
+DISPLAY=:99 plank &
+
 # Start the Vessel agent
 exec node /opt/vessel-agent/server.js
