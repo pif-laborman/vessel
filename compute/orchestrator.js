@@ -261,8 +261,8 @@ const server = http.createServer(async (req, res) => {
     } catch (err) { return sendJson(res, 500, { error: err.message }); }
   }
 
-  // Proxy to agent: /containers/:id/screenshot, /actions, /bash, /python, /health
-  const proxyMatch = url.pathname.match(/^\/containers\/([a-f0-9]+)\/(screenshot|actions|bash|python|health)$/);
+  // Proxy to agent: all action and file endpoints
+  const proxyMatch = url.pathname.match(/^\/containers\/([a-f0-9]+)\/(screenshot|actions|click|drag|type|key|scroll|wait|bash|python|health|files|files\/download|files\/upload)$/);
   if (proxyMatch) {
     const [, id, endpoint] = proxyMatch;
     const info = containers.get(id);
@@ -272,18 +272,21 @@ const server = http.createServer(async (req, res) => {
 
     try {
       const body = req.method === "POST" ? await parseBody(req) : null;
+      const qs = url.search || "";
       const agentRes = await proxyToAgent(
         info.port,
         req.method,
-        `/${endpoint}`,
+        `/${endpoint}${qs}`,
         body
       );
 
-      // Pass through headers for screenshots (binary)
-      if (endpoint === "screenshot" && agentRes.status === 200) {
+      // Pass through binary responses (screenshots, file downloads)
+      const ct = agentRes.headers["content-type"] || "";
+      if (agentRes.status === 200 && ct && !ct.includes("json")) {
         res.writeHead(200, {
-          "Content-Type": agentRes.headers["content-type"] || "image/png",
+          "Content-Type": ct,
           "Content-Length": agentRes.body.length,
+          ...(agentRes.headers["content-disposition"] ? { "Content-Disposition": agentRes.headers["content-disposition"] } : {}),
         });
         return res.end(agentRes.body);
       }

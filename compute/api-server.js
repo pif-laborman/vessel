@@ -345,52 +345,66 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, { computers, total: computers.length });
   }
 
-  // Proxy: GET /v1/computers/:id/screenshot
-  const screenshotMatch = url.pathname.match(/^\/v1\/computers\/([^/]+)\/screenshot$/);
-  if (req.method === "GET" && screenshotMatch) {
-    const computerId = screenshotMatch[1];
+  // GET /v1/workspaces/:id (single workspace)
+  const wsGetMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)$/);
+  if (req.method === "GET" && wsGetMatch) {
+    const wsId = wsGetMatch[1];
+    const supaRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/workspaces?id=eq.${wsId}&user_id=eq.${userId}`,
+      { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
+    );
+    const data = await supaRes.json();
+    if (!Array.isArray(data) || data.length === 0) return sendJson(res, 404, { error: "Workspace not found" });
+    return sendJson(res, 200, data[0]);
+  }
+
+  // GET/PATCH /v1/computers/:id/auto-stop
+  const autoStopMatch = url.pathname.match(/^\/v1\/computers\/([^/]+)\/auto-stop$/);
+  if (autoStopMatch) {
+    const computerId = autoStopMatch[1];
+    if (req.method === "GET") {
+      const supaRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/computers?id=eq.${computerId}&user_id=eq.${userId}&select=auto_stop_minutes`,
+        { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
+      );
+      const data = await supaRes.json();
+      if (!Array.isArray(data) || data.length === 0) return sendJson(res, 404, { error: "Computer not found" });
+      return sendJson(res, 200, { auto_stop_minutes: data[0].auto_stop_minutes });
+    }
+    if (req.method === "PATCH") {
+      const body = await parseBody(req);
+      await fetch(`${SUPABASE_URL}/rest/v1/computers?id=eq.${computerId}&user_id=eq.${userId}`, {
+        method: "PATCH",
+        headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ auto_stop_minutes: body.minutes === 0 ? null : (body.minutes || null), updated_at: new Date().toISOString() }),
+      });
+      return sendJson(res, 200, { ok: true });
+    }
+  }
+
+  // Generic proxy for all computer sub-endpoints
+  // Matches: screenshot, click, drag, type, key, scroll, wait, actions, bash, python, files, files/download, files/upload
+  const computerProxyMatch = url.pathname.match(/^\/v1\/computers\/([^/]+)\/(screenshot|click|drag|type|key|scroll|wait|actions|bash|python|files(?:\/download|\/upload)?)$/);
+  if (computerProxyMatch) {
+    const computerId = computerProxyMatch[1];
+    const endpoint = computerProxyMatch[2];
     const containerId = await getContainerId(computerId, userId);
     if (!containerId) return sendJson(res, 404, { error: "Computer not found" });
 
     try {
-      const orchRes = await orchRequest("GET", `/containers/${containerId}/screenshot`);
-      if (orchRes.status === 200) {
-        return sendBinary(res, 200, orchRes.headers["content-type"] || "image/png", orchRes.body);
+      // Forward query string for screenshot format and file paths
+      let agentPath = `/containers/${containerId}/${endpoint}`;
+      const qs = url.search;
+      if (qs) agentPath += qs;
+
+      const body = req.method === "POST" ? await parseBody(req) : null;
+      const orchRes = await orchRequest(req.method, agentPath, body);
+
+      // Binary responses (screenshot without format, file download)
+      if (orchRes.status === 200 && orchRes.headers["content-type"] && !orchRes.headers["content-type"].includes("json")) {
+        return sendBinary(res, 200, orchRes.headers["content-type"], orchRes.body);
       }
-      res.writeHead(orchRes.status, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
-      return res.end(orchRes.body);
-    } catch (err) {
-      return sendJson(res, 502, { error: err.message });
-    }
-  }
 
-  // Proxy: POST /v1/computers/:id/actions
-  const actionsMatch = url.pathname.match(/^\/v1\/computers\/([^/]+)\/actions$/);
-  if (req.method === "POST" && actionsMatch) {
-    const computerId = actionsMatch[1];
-    const containerId = await getContainerId(computerId, userId);
-    if (!containerId) return sendJson(res, 404, { error: "Computer not found" });
-
-    const body = await parseBody(req);
-    try {
-      const orchRes = await orchRequest("POST", `/containers/${containerId}/actions`, body);
-      res.writeHead(orchRes.status, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
-      return res.end(orchRes.body);
-    } catch (err) {
-      return sendJson(res, 502, { error: err.message });
-    }
-  }
-
-  // Proxy: POST /v1/computers/:id/bash
-  const bashMatch = url.pathname.match(/^\/v1\/computers\/([^/]+)\/bash$/);
-  if (req.method === "POST" && bashMatch) {
-    const computerId = bashMatch[1];
-    const containerId = await getContainerId(computerId, userId);
-    if (!containerId) return sendJson(res, 404, { error: "Computer not found" });
-
-    const body = await parseBody(req);
-    try {
-      const orchRes = await orchRequest("POST", `/containers/${containerId}/bash`, body);
       res.writeHead(orchRes.status, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
       return res.end(orchRes.body);
     } catch (err) {

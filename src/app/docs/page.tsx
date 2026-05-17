@@ -12,8 +12,8 @@ const sections = [
   {
     title: "Core concepts",
     items: [
-      { label: "Computers", href: "#computers" },
-      { label: "Workspaces", href: "#workspaces" },
+      { label: "Computer object", href: "#computer-object" },
+      { label: "Workspace object", href: "#workspace-object" },
       { label: "The agent loop", href: "#agent-loop" },
     ],
   },
@@ -21,6 +21,7 @@ const sections = [
     title: "Workspaces",
     items: [
       { label: "Create workspace", href: "#create-workspace" },
+      { label: "Get workspace", href: "#get-workspace" },
       { label: "List workspaces", href: "#list-workspaces" },
       { label: "Delete workspace", href: "#delete-workspace" },
     ],
@@ -43,6 +44,7 @@ const sections = [
       { label: "Start", href: "#start-computer" },
       { label: "Stop", href: "#stop-computer" },
       { label: "Restart", href: "#restart-computer" },
+      { label: "Auto-stop", href: "#auto-stop" },
     ],
   },
   {
@@ -50,12 +52,22 @@ const sections = [
     items: [
       { label: "Screenshot", href: "#screenshot" },
       { label: "Click", href: "#action-click" },
-      { label: "Double click", href: "#action-double-click" },
+      { label: "Drag", href: "#action-drag" },
       { label: "Type", href: "#action-type" },
       { label: "Key press", href: "#action-key" },
       { label: "Scroll", href: "#action-scroll" },
+      { label: "Wait", href: "#action-wait" },
       { label: "Execute bash", href: "#execute-bash" },
       { label: "Execute Python", href: "#execute-python" },
+    ],
+  },
+  {
+    title: "Files",
+    items: [
+      { label: "List files", href: "#list-files" },
+      { label: "Upload file", href: "#upload-file" },
+      { label: "Download file", href: "#download-file" },
+      { label: "Delete file", href: "#delete-file" },
     ],
   },
   {
@@ -177,12 +189,38 @@ curl https://meetpif.com/vessel-api/v1/computers/{id}/screenshot \\
           <P>All API requests require a Bearer token. Get your API key from the dashboard.</P>
           <CodeBlock title="Header" code={`Authorization: Bearer vsl_your_api_key`} />
 
-          <SectionTitle id="computers">Computers</SectionTitle>
-          <P>A computer is a virtual machine with a full Linux desktop environment (XFCE), Firefox, Python, Node.js, and git pre-installed. Each computer has its own filesystem, display, and network.</P>
-          <P>Computers can be running, stopped, or terminated. Stopped computers preserve their filesystem but release compute resources. Terminated computers are permanently deleted.</P>
+          <SectionTitle id="computer-object">Computer object</SectionTitle>
+          <P>A computer is a virtual machine with a full Linux desktop (XFCE), Firefox, Python, Node.js, and git.</P>
+          <CodeBlock title="Computer object" code={`{
+  "id": "ee5e84e7-dbaa-4730-884a-33866530d34f",
+  "workspace_id": "b3aa1e63-e9b2-4fd5-9345-3b07ba7668dd",
+  "user_id": "2812ea8d-ab93-436e-aa9d-7cb13ec7d42a",
+  "name": "my-agent",
+  "os": "linux",
+  "cpu": 2,                    // 1, 2, 4, 8, 16
+  "ram": 8,                    // 4, 8, 16, 32, 64 (GB)
+  "disk_size_gb": 8,
+  "resolution": "1280x720x24",
+  "status": "running",         // creating | starting | running | stopping | stopped | restarting | terminated | error
+  "container_id": "090fdc1ddd50",
+  "hostname": "127.0.0.1:10000",
+  "auto_stop_minutes": null,   // null = disabled, number = minutes of inactivity
+  "created_at": "2026-05-17T12:00:00Z",
+  "updated_at": "2026-05-17T12:00:00Z",
+  "terminated_at": null
+}`} />
 
-          <SectionTitle id="workspaces">Workspaces</SectionTitle>
-          <P>Workspaces group computers together. Each user starts with a default workspace. You can create multiple workspaces to organize computers by project or environment.</P>
+          <SectionTitle id="workspace-object">Workspace object</SectionTitle>
+          <P>Workspaces group computers together. Each user starts with a default workspace.</P>
+          <CodeBlock title="Workspace object" code={`{
+  "id": "b3aa1e63-e9b2-4fd5-9345-3b07ba7668dd",
+  "user_id": "2812ea8d-ab93-436e-aa9d-7cb13ec7d42a",
+  "name": "Production",
+  "status": "active",          // active | inactive
+  "icon_url": null,            // uploaded workspace icon
+  "created_at": "2026-05-17T12:00:00Z",
+  "updated_at": "2026-05-17T12:00:00Z"
+}`} />
 
           <SectionTitle id="agent-loop">The agent loop</SectionTitle>
           <P>AI agents operate on computers in a cycle: <strong>See</strong> (screenshot), <strong>Decide</strong> (model inference), <strong>Act</strong> (click/type/execute), <strong>Repeat</strong>. The SDK handles this loop automatically with <code style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)", background: "var(--bg-surface)", padding: "2px 6px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>computer.prompt()</code>.</P>
@@ -198,6 +236,10 @@ curl https://meetpif.com/vessel-api/v1/computers/{id}/screenshot \\
   "status": "active",
   "created_at": "2026-05-17T12:00:00Z"
 }`} />
+
+          <SectionTitle id="get-workspace">Get workspace</SectionTitle>
+          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="GET" path="/v1/workspaces/:id" /></p>
+          <P>Returns full details for a single workspace.</P>
 
           <SectionTitle id="list-workspaces">List workspaces</SectionTitle>
           <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="GET" path="/v1/workspaces" /></p>
@@ -279,32 +321,60 @@ curl https://meetpif.com/vessel-api/v1/computers/{id}/screenshot \\
           <P>Reboots the computer. Filesystem is preserved, all running processes are terminated, and a fresh desktop session starts.</P>
 
           {/* Actions */}
+          <SectionTitle id="auto-stop">Auto-stop</SectionTitle>
+          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="GET" path="/v1/computers/:id/auto-stop" /></p>
+          <P>Get the current auto-stop configuration.</P>
+          <CodeBlock title="Response" code={`{ "auto_stop_minutes": 30 }  // null = disabled`} />
+          <p style={{ marginBottom: "var(--space-3)", marginTop: "var(--space-4)" }}><Endpoint method="PATCH" path="/v1/computers/:id/auto-stop" /></p>
+          <P>Set or disable auto-stop. The computer will automatically stop after the specified minutes of inactivity. Set to 0 to disable.</P>
+          <CodeBlock title="Request" code={`{ "minutes": 30 }   // 0 to disable`} />
+
+          {/* Actions */}
           <SectionTitle id="screenshot">Screenshot</SectionTitle>
           <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="GET" path="/v1/computers/:id/screenshot" /></p>
-          <P>Returns a PNG image (1280x720) of the current desktop.</P>
+          <P>Returns the current desktop. Default response is a raw PNG image. Add <code style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)", background: "var(--bg-surface)", padding: "2px 6px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>?format=base64</code> for a JSON response with embedded image data.</P>
+          <CodeBlock title="Raw PNG (default)" code={`GET /v1/computers/:id/screenshot
+// Response: binary PNG image (1280x720)`} />
+          <CodeBlock title="Base64 JSON (?format=base64)" code={`{
+  "success": true,
+  "image": "data:image/png;base64,iVBORw0KGgo...",
+  "metadata": {
+    "width": 1280,
+    "height": 720,
+    "format": "png",
+    "size": 25203,
+    "timestamp": "2026-05-17T12:00:00Z"
+  }
+}`} />
 
           <SectionTitle id="action-click">Click</SectionTitle>
-          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/actions" /></p>
-          <CodeBlock title="Request" code={`{ "type": "click", "x": 500, "y": 300, "button": "left" }
-// button: "left" (default), "right", "middle"`} />
+          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/click" /></p>
+          <CodeBlock title="Request" code={`{ "x": 500, "y": 300, "button": "left" }
+// button: "left" (default), "right", "middle"
+// double_click: true for double-click`} />
 
-          <SectionTitle id="action-double-click">Double click</SectionTitle>
-          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/actions" /></p>
-          <CodeBlock title="Request" code={`{ "type": "double_click", "x": 500, "y": 300 }`} />
+          <SectionTitle id="action-drag">Drag</SectionTitle>
+          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/drag" /></p>
+          <CodeBlock title="Request" code={`{ "start_x": 100, "start_y": 200, "end_x": 400, "end_y": 300, "button": "left" }`} />
 
           <SectionTitle id="action-type">Type text</SectionTitle>
-          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/actions" /></p>
-          <CodeBlock title="Request" code={`{ "type": "type", "text": "Hello from Vessel" }`} />
+          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/type" /></p>
+          <CodeBlock title="Request" code={`{ "text": "Hello from Vessel" }`} />
 
           <SectionTitle id="action-key">Key press</SectionTitle>
-          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/actions" /></p>
-          <CodeBlock title="Request" code={`{ "type": "key", "key": "Return" }
-// Keys: Return, BackSpace, Tab, Up, Down, Left, Right, Delete, Home, End`} />
+          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/key" /></p>
+          <CodeBlock title="Request" code={`{ "key": "Return" }
+// Keys: Return, BackSpace, Tab, Up, Down, Left, Right, Delete, Home, End, space, ctrl+c, alt+F4`} />
 
           <SectionTitle id="action-scroll">Scroll</SectionTitle>
-          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/actions" /></p>
-          <CodeBlock title="Request" code={`{ "type": "scroll", "x": 500, "y": 300, "direction": "down", "amount": 3 }
+          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/scroll" /></p>
+          <CodeBlock title="Request" code={`{ "x": 500, "y": 300, "direction": "down", "amount": 3 }
 // direction: "up" or "down"`} />
+
+          <SectionTitle id="action-wait">Wait</SectionTitle>
+          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/wait" /></p>
+          <P>Pause for a specified duration (max 30 seconds). Useful in agent loops between actions.</P>
+          <CodeBlock title="Request" code={`{ "seconds": 2 }`} />
 
           <SectionTitle id="execute-bash">Execute bash</SectionTitle>
           <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/bash" /></p>
@@ -323,6 +393,33 @@ curl https://meetpif.com/vessel-api/v1/computers/{id}/screenshot \\
   "stderr": "",
   "exit_code": 0
 }`} />
+
+          {/* Files */}
+          <SectionTitle id="list-files">List files</SectionTitle>
+          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="GET" path="/v1/computers/:id/files?path=/root" /></p>
+          <P>List files and directories at the given path inside the computer.</P>
+          <CodeBlock title="Response" code={`{
+  "path": "/root",
+  "entries": [
+    { "name": "Documents", "type": "directory", "size": 0 },
+    { "name": "hello.py", "type": "file", "size": 142 }
+  ]
+}`} />
+
+          <SectionTitle id="upload-file">Upload file</SectionTitle>
+          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/files/upload?path=/root/data.csv" /></p>
+          <P>Upload a file to the specified path inside the computer. Send the raw file content as the request body.</P>
+          <CodeBlock title="cURL example" code={`curl -X POST "https://meetpif.com/vessel-api/v1/computers/{id}/files/upload?path=/root/data.csv" \\
+  -H "Authorization: Bearer vsl_your_api_key" \\
+  --data-binary @local_file.csv`} />
+
+          <SectionTitle id="download-file">Download file</SectionTitle>
+          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="GET" path="/v1/computers/:id/files/download?path=/root/output.txt" /></p>
+          <P>Download a file from the computer. Returns raw binary content with Content-Disposition header. Max 50MB.</P>
+
+          <SectionTitle id="delete-file">Delete file</SectionTitle>
+          <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="DELETE" path="/v1/computers/:id/files?path=/root/temp.txt" /></p>
+          <P>Delete a file inside the computer.</P>
 
           {/* Streaming */}
           <SectionTitle id="ws-terminal">WebSocket terminal</SectionTitle>
