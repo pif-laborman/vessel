@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { DesktopViewer } from "./DesktopViewer";
 import { CreateComputerPopover } from "./CreateComputerPopover";
@@ -124,20 +124,20 @@ export function DashboardShell({
   initialWorkspaces,
   initialComputers,
   initialApiKeys,
+  initialComputerId,
 }: {
   user: User;
   profile: Profile | null;
   initialWorkspaces: Workspace[];
   initialComputers: Computer[];
   initialApiKeys: ApiKey[];
+  initialComputerId?: string;
 }) {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const urlComputerId = searchParams.get("computer");
 
-  // If URL has ?computer=, use that; otherwise fall back to first computer
-  const initialSelected = urlComputerId && initialComputers.some((c) => c.id === urlComputerId)
-    ? urlComputerId
+  // If a computer ID was passed (from /dashboard/computers/:id), use it
+  const initialSelected = initialComputerId && initialComputers.some((c) => c.id === initialComputerId)
+    ? initialComputerId
     : initialComputers.length > 0 ? initialComputers[0].id : null;
   const initialView: View = initialSelected ? "computer" : "home";
 
@@ -197,7 +197,7 @@ export function DashboardShell({
   const handleSelectComputer = useCallback((id: string) => {
     setSelectedComputerId(id);
     setView("computer");
-    router.push(`/dashboard?computer=${id}`, { scroll: false });
+    router.push(`/dashboard/computers/${id}`, { scroll: false });
   }, [router]);
 
   const handleCreated = useCallback((computer: Computer) => {
@@ -205,7 +205,7 @@ export function DashboardShell({
     setSelectedComputerId(computer.id);
     setView("computer");
     setShowCreate(false);
-    router.push(`/dashboard?computer=${computer.id}`, { scroll: false });
+    router.push(`/dashboard/computers/${computer.id}`, { scroll: false });
   }, [router]);
 
   const handleDelete = useCallback(async () => {
