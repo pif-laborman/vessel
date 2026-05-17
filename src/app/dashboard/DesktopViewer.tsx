@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 
+const VPS_API = "https://meetpif.com/vessel-api";
+
 interface Props {
   computerId: string;
   computerName: string;
@@ -15,10 +17,13 @@ export function DesktopViewer({ computerId, computerName, onClose, inline }: Pro
   const [error, setError] = useState<string | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const activeRef = useRef(true);
 
+  // Use Vercel proxy for auth (session cookie), but request JPEG for speed
   const fetchScreenshot = useCallback(async () => {
+    if (!activeRef.current) return;
     try {
-      const res = await fetch(`/api/computers/${computerId}/screenshot`);
+      const res = await fetch(`/api/computers/${computerId}/screenshot?format=jpeg`);
       if (!res.ok) { setError("Failed to capture screen"); return; }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -31,10 +36,20 @@ export function DesktopViewer({ computerId, computerName, onClose, inline }: Pro
   }, [computerId]);
 
   useEffect(() => {
+    activeRef.current = true;
     fetchScreenshot();
-    const interval = setInterval(fetchScreenshot, 1000);
-    return () => { clearInterval(interval); };
+    const interval = setInterval(fetchScreenshot, 300);
+    return () => { activeRef.current = false; clearInterval(interval); };
   }, [fetchScreenshot]);
+
+  // Send action via Vercel proxy (keeps auth simple)
+  const sendAction = useCallback(async (endpoint: string, body: Record<string, unknown>) => {
+    await fetch(`/api/computers/${computerId}/${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  }, [computerId]);
 
   async function handleClick(e: React.MouseEvent<HTMLImageElement>) {
     const img = imgRef.current;
@@ -45,12 +60,8 @@ export function DesktopViewer({ computerId, computerName, onClose, inline }: Pro
     const x = Math.round((e.clientX - rect.left) * scaleX);
     const y = Math.round((e.clientY - rect.top) * scaleY);
 
-    await fetch(`/api/computers/${computerId}/actions`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "click", x, y }),
-    });
-    setTimeout(fetchScreenshot, 300);
+    await sendAction("actions", { type: "click", x, y });
+    setTimeout(fetchScreenshot, 100);
   }
 
   async function handleKeyDown(e: React.KeyboardEvent) {
@@ -59,11 +70,7 @@ export function DesktopViewer({ computerId, computerName, onClose, inline }: Pro
     e.preventDefault();
 
     if (e.key.length === 1) {
-      await fetch(`/api/computers/${computerId}/actions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "type", text: e.key }),
-      });
+      await sendAction("actions", { type: "type", text: e.key });
     } else {
       const keyMap: Record<string, string> = {
         Enter: "Return", Backspace: "BackSpace", Tab: "Tab",
@@ -72,17 +79,13 @@ export function DesktopViewer({ computerId, computerName, onClose, inline }: Pro
       };
       const xdoKey = keyMap[e.key];
       if (xdoKey) {
-        await fetch(`/api/computers/${computerId}/actions`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: "key", key: xdoKey }),
-        });
+        await sendAction("actions", { type: "key", key: xdoKey });
       }
     }
-    setTimeout(fetchScreenshot, 200);
+    setTimeout(fetchScreenshot, 100);
   }
 
-  // Inline mode: fits within parent container
+  // Inline mode
   if (inline) {
     return (
       <div
@@ -111,7 +114,7 @@ export function DesktopViewer({ computerId, computerName, onClose, inline }: Pro
     );
   }
 
-  // Overlay mode (legacy)
+  // Overlay mode
   return (
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }}>
       <div className="shrink-0 flex items-center justify-between" style={{ padding: "8px 16px", background: "rgba(0,0,0,0.5)" }}>

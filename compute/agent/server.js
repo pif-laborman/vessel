@@ -4,7 +4,8 @@ const fs = require("fs");
 const path = require("path");
 
 const PORT = 8420;
-const SCREENSHOT_PATH = "/tmp/screenshot.png";
+const SCREENSHOT_PNG = "/tmp/screenshot.png";
+const SCREENSHOT_JPG = "/tmp/screenshot.jpg";
 const MAX_OUTPUT = 64 * 1024;
 const EXEC_TIMEOUT = 30_000;
 
@@ -24,10 +25,14 @@ function sendJson(res, status, data) {
   res.end(JSON.stringify(data));
 }
 
-function takeScreenshot() {
+function takeScreenshot(jpeg = false) {
   execSync(`xdotool getactivewindow 2>/dev/null || true`, { timeout: 2000 });
-  execSync(`import -window root -display :99 ${SCREENSHOT_PATH}`, { timeout: 5000 });
-  return fs.readFileSync(SCREENSHOT_PATH);
+  if (jpeg) {
+    execSync(`import -window root -display :99 -quality 70 ${SCREENSHOT_JPG}`, { timeout: 5000 });
+    return fs.readFileSync(SCREENSHOT_JPG);
+  }
+  execSync(`import -window root -display :99 ${SCREENSHOT_PNG}`, { timeout: 5000 });
+  return fs.readFileSync(SCREENSHOT_PNG);
 }
 
 function doClick(x, y, button = "left", repeat = 1) {
@@ -73,11 +78,14 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 200, { status: "ok", uptime: process.uptime() });
   }
 
-  // Screenshot (supports ?format=base64 for JSON response)
+  // Screenshot (supports ?format=base64|jpeg)
   if (req.method === "GET" && url.pathname === "/screenshot") {
     try {
-      const img = takeScreenshot();
       const format = url.searchParams.get("format");
+      const useJpeg = format === "jpeg" || format === "jpg";
+      const img = takeScreenshot(useJpeg);
+      const mime = useJpeg ? "image/jpeg" : "image/png";
+
       if (format === "base64") {
         return sendJson(res, 200, {
           success: true,
@@ -85,7 +93,7 @@ const server = http.createServer(async (req, res) => {
           metadata: { width: 1280, height: 720, format: "png", size: img.length, timestamp: new Date().toISOString() },
         });
       }
-      res.writeHead(200, { "Content-Type": "image/png", "Content-Length": img.length });
+      res.writeHead(200, { "Content-Type": mime, "Content-Length": img.length });
       return res.end(img);
     } catch (err) {
       return sendJson(res, 500, { error: err.message });

@@ -54,7 +54,7 @@ function SidebarThumbnail({ computer, selected, onClick }: {
 
     async function fetchThumb() {
       try {
-        const res = await fetch(`/api/computers/${computer.id}/screenshot`);
+        const res = await fetch(`/api/computers/${computer.id}/screenshot?format=jpeg`);
         if (res.ok && !cancelled) {
           const blob = await res.blob();
           setThumbUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return URL.createObjectURL(blob); });
