@@ -98,9 +98,32 @@ function WorkspacePanel({ workspaceName, workspaceId, apiKeys, onDeleteWorkspace
     <div>
       <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: "var(--text-lg)", marginBottom: "var(--space-6)" }}>Workspace settings</h2>
 
-      <div style={{ marginBottom: "var(--space-6)" }}>
-        <label style={{ display: "block", fontSize: "var(--text-xs)", fontWeight: 500, color: "var(--text-secondary)", marginBottom: "var(--space-2)", fontFamily: "var(--font-display)" }}>Name</label>
-        <input type="text" value={name} onChange={(e) => setName(e.target.value)} onBlur={handleSave} onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }} style={{ width: "100%", height: 42, borderRadius: "var(--radius-md)", border: "1px solid var(--border)", padding: "0 var(--space-3)", fontSize: "var(--text-sm)", fontFamily: "var(--font-body)", color: "var(--text-primary)", outline: "none" }} />
+      {/* Icon + Name row */}
+      <div className="flex gap-4" style={{ marginBottom: "var(--space-6)" }}>
+        {/* Icon */}
+        <div>
+          <label style={{ display: "block", fontSize: "var(--text-xs)", fontWeight: 500, color: "var(--text-secondary)", marginBottom: "var(--space-2)", fontFamily: "var(--font-display)" }}>Icon</label>
+          <button
+            className="flex items-center justify-center hover:opacity-80 transition-opacity"
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: "var(--radius-md)",
+              border: "1px solid var(--border)",
+              background: "var(--bg-surface)",
+              cursor: "pointer",
+            }}
+          >
+            <span style={{ fontSize: "var(--text-2xl)" }}>
+              {workspaceName.charAt(0).toUpperCase()}
+            </span>
+          </button>
+        </div>
+        {/* Name */}
+        <div className="flex-1">
+          <label style={{ display: "block", fontSize: "var(--text-xs)", fontWeight: 500, color: "var(--text-secondary)", marginBottom: "var(--space-2)", fontFamily: "var(--font-display)" }}>Name</label>
+          <input type="text" value={name} onChange={(e) => setName(e.target.value)} onBlur={handleSave} onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }} style={{ width: "100%", height: 42, borderRadius: "var(--radius-md)", border: "1px solid var(--border)", padding: "0 var(--space-3)", fontSize: "var(--text-sm)", fontFamily: "var(--font-body)", color: "var(--text-primary)", outline: "none" }} />
+        </div>
       </div>
 
       {workspaceId && <ReadonlyField label="Workspace ID" value={workspaceId} />}
