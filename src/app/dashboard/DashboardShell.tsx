@@ -299,9 +299,9 @@ export function DashboardShell({
       <div className="flex-1 flex flex-col min-w-0">
         {view === "computer" && selectedComputer ? (
           <>
-            {/* Minimal top bar: name + "..." together */}
+            {/* Minimal top bar: name + "..." together, left-aligned */}
             <div
-              className="shrink-0 flex items-center justify-center"
+              className="shrink-0 flex items-center"
               style={{ padding: "10px 20px", borderBottom: "1px solid var(--border)" }}
             >
               <div className="flex items-center gap-1">
