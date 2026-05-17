@@ -410,6 +410,15 @@ export function DashboardShell({
             setComputers((prev) => prev.map((c) => c.id === id ? { ...c, name } : c));
           }}
           onDeleteWorkspace={() => { setSettingsTab(null); }}
+          onRenameWorkspace={(name) => {
+            if (!activeWorkspaceId) return;
+            setWorkspaces((prev) => prev.map((w) => w.id === activeWorkspaceId ? { ...w, name } : w));
+            fetch(`/api/workspaces/${activeWorkspaceId}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ name }),
+            }).catch(() => {});
+          }}
         />
       )}
     </div>

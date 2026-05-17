@@ -42,6 +42,7 @@ interface Props {
   onDeleteComputer: (id: string) => void;
   onRenameComputer: (id: string, name: string) => void;
   onDeleteWorkspace: () => void;
+  onRenameWorkspace: (name: string) => void;
 }
 
 function CopyButton({ value }: { value: string }) {
@@ -78,19 +79,28 @@ function ReadonlyField({ label, value }: { label: string; value: string }) {
 }
 
 // Workspace settings panel
-function WorkspacePanel({ workspaceName, workspaceId, apiKeys, onDeleteWorkspace }: {
+function WorkspacePanel({ workspaceName, workspaceId, apiKeys, onDeleteWorkspace, onRenameWorkspace }: {
   workspaceName: string;
   workspaceId: string | null;
   apiKeys: ApiKey[];
   onDeleteWorkspace: () => void;
+  onRenameWorkspace: (name: string) => void;
 }) {
+  const [name, setName] = useState(workspaceName);
+
+  function handleSave() {
+    if (name.trim() && name.trim() !== workspaceName) {
+      onRenameWorkspace(name.trim());
+    }
+  }
+
   return (
     <div>
       <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: "var(--text-lg)", marginBottom: "var(--space-6)" }}>Workspace settings</h2>
 
       <div style={{ marginBottom: "var(--space-6)" }}>
         <label style={{ display: "block", fontSize: "var(--text-xs)", fontWeight: 500, color: "var(--text-secondary)", marginBottom: "var(--space-2)", fontFamily: "var(--font-display)" }}>Name</label>
-        <input type="text" defaultValue={workspaceName} style={{ width: "100%", height: 42, borderRadius: "var(--radius-md)", border: "1px solid var(--border)", padding: "0 var(--space-3)", fontSize: "var(--text-sm)", fontFamily: "var(--font-body)", color: "var(--text-primary)", outline: "none" }} />
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} onBlur={handleSave} onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }} style={{ width: "100%", height: 42, borderRadius: "var(--radius-md)", border: "1px solid var(--border)", padding: "0 var(--space-3)", fontSize: "var(--text-sm)", fontFamily: "var(--font-body)", color: "var(--text-primary)", outline: "none" }} />
       </div>
 
       {workspaceId && <ReadonlyField label="Workspace ID" value={workspaceId} />}
@@ -195,7 +205,7 @@ function ComputerPanel({ computer, onDelete, onRename }: { computer: Computer; o
   );
 }
 
-export function UnifiedSettings({ workspaceName, workspaceId, displayName, email, plan, initials, computers, apiKeys, initialTab, onClose, onDeleteComputer, onRenameComputer, onDeleteWorkspace }: Props) {
+export function UnifiedSettings({ workspaceName, workspaceId, displayName, email, plan, initials, computers, apiKeys, initialTab, onClose, onDeleteComputer, onRenameComputer, onDeleteWorkspace, onRenameWorkspace }: Props) {
   const [activeTab, setActiveTab] = useState(initialTab || "workspace");
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -289,7 +299,7 @@ export function UnifiedSettings({ workspaceName, workspaceId, displayName, email
           {/* Scrollable content */}
           <div className="flex-1 overflow-y-auto" style={{ padding: "4px 24px 24px" }}>
             {activeTab === "workspace" && (
-              <WorkspacePanel workspaceName={workspaceName} workspaceId={workspaceId} apiKeys={apiKeys} onDeleteWorkspace={onDeleteWorkspace} />
+              <WorkspacePanel workspaceName={workspaceName} workspaceId={workspaceId} apiKeys={apiKeys} onDeleteWorkspace={onDeleteWorkspace} onRenameWorkspace={onRenameWorkspace} />
             )}
             {activeTab === "members" && <MembersPanel />}
             {activeTab === "profile" && (
