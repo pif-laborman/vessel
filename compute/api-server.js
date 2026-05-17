@@ -157,6 +157,43 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 401, { error: "Invalid or missing API key" });
   }
 
+  // Rate limiting (check and increment)
+  try {
+    const profileRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=api_calls_today,api_calls_reset_at,plan`,
+      { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
+    );
+    const profiles = await profileRes.json();
+    if (Array.isArray(profiles) && profiles.length > 0) {
+      const p = profiles[0];
+      const resetAt = new Date(p.api_calls_reset_at);
+      const now = new Date();
+      const dayMs = 86400000;
+      let calls = p.api_calls_today || 0;
+
+      // Reset counter if more than 24h since last reset
+      if (now.getTime() - resetAt.getTime() > dayMs) {
+        calls = 0;
+        await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
+          method: "PATCH",
+          headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ api_calls_today: 1, api_calls_reset_at: now.toISOString() }),
+        });
+      } else {
+        const limit = p.plan === "starter" ? 1000 : 999999;
+        if (calls >= limit) {
+          return sendJson(res, 429, { error: "Rate limit exceeded. Upgrade your plan for unlimited API calls." });
+        }
+        // Increment (fire and forget)
+        fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
+          method: "PATCH",
+          headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ api_calls_today: calls + 1 }),
+        }).catch(() => {});
+      }
+    }
+  } catch {} // Don't block on rate limit failures
+
   // GET /v1/workspaces
   if (req.method === "GET" && url.pathname === "/v1/workspaces") {
     const supaRes = await fetch(
@@ -187,9 +224,68 @@ const server = http.createServer(async (req, res) => {
     return sendJson(res, 201, Array.isArray(ws) ? ws[0] : ws);
   }
 
+  // DELETE /v1/workspaces/:id
+  const wsDeleteMatch = url.pathname.match(/^\/v1\/workspaces\/([^/]+)$/);
+  if (req.method === "DELETE" && wsDeleteMatch) {
+    const wsId = wsDeleteMatch[1];
+    // Delete all computers in the workspace first
+    const compsRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/computers?workspace_id=eq.${wsId}&user_id=eq.${userId}&status=neq.terminated&select=container_id`,
+      { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
+    );
+    const comps = await compsRes.json();
+    for (const c of (Array.isArray(comps) ? comps : [])) {
+      if (c.container_id) {
+        try { await orchRequest("DELETE", `/containers/${c.container_id}`); } catch {}
+      }
+    }
+    await fetch(`${SUPABASE_URL}/rest/v1/computers?workspace_id=eq.${wsId}&user_id=eq.${userId}`, {
+      method: "PATCH",
+      headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "terminated", terminated_at: new Date().toISOString() }),
+    });
+    await fetch(`${SUPABASE_URL}/rest/v1/workspaces?id=eq.${wsId}&user_id=eq.${userId}`, {
+      method: "PATCH",
+      headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "inactive" }),
+    });
+    return sendJson(res, 200, { ok: true });
+  }
+
+  // GET /v1/computers/:id (single computer)
+  const getOneMatch = url.pathname.match(/^\/v1\/computers\/([^/]+)$/);
+  if (req.method === "GET" && getOneMatch) {
+    const computerId = getOneMatch[1];
+    const supaRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/computers?id=eq.${computerId}&user_id=eq.${userId}`,
+      { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
+    );
+    const data = await supaRes.json();
+    if (!Array.isArray(data) || data.length === 0) return sendJson(res, 404, { error: "Computer not found" });
+    return sendJson(res, 200, data[0]);
+  }
+
   // POST /v1/computers
   if (req.method === "POST" && url.pathname === "/v1/computers") {
     const body = await parseBody(req);
+
+    // Enforce max_computers
+    const profileRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=max_computers`,
+      { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
+    );
+    const profiles = await profileRes.json();
+    const maxComputers = (Array.isArray(profiles) && profiles[0]?.max_computers) || 2;
+
+    const countRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/computers?user_id=eq.${userId}&status=neq.terminated&select=id`,
+      { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
+    );
+    const existing = await countRes.json();
+    if (Array.isArray(existing) && existing.length >= maxComputers) {
+      return sendJson(res, 403, { error: `Computer limit reached (max ${maxComputers}). Upgrade your plan or delete existing computers.` });
+    }
+
     try {
       const orchRes = await orchRequest("POST", "/containers", {
         name: body.name || "computer",
@@ -315,6 +411,100 @@ const server = http.createServer(async (req, res) => {
       return sendJson(res, orchRes.status, orchData);
     } catch (err) {
       return sendJson(res, 502, { error: err.message });
+    }
+  }
+
+  // POST /v1/computers/:id/stop
+  const stopMatch = url.pathname.match(/^\/v1\/computers\/([^/]+)\/stop$/);
+  if (req.method === "POST" && stopMatch) {
+    const computerId = stopMatch[1];
+    const containerId = await getContainerId(computerId, userId);
+    if (!containerId) return sendJson(res, 404, { error: "Computer not found" });
+
+    try {
+      await orchRequest("POST", `/containers/${containerId}/stop`);
+      await fetch(`${SUPABASE_URL}/rest/v1/computers?id=eq.${computerId}&user_id=eq.${userId}`, {
+        method: "PATCH",
+        headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "stopped", updated_at: new Date().toISOString() }),
+      });
+      return sendJson(res, 200, { ok: true });
+    } catch (err) {
+      return sendJson(res, 502, { error: err.message });
+    }
+  }
+
+  // POST /v1/computers/:id/start
+  const startMatch = url.pathname.match(/^\/v1\/computers\/([^/]+)\/start$/);
+  if (req.method === "POST" && startMatch) {
+    const computerId = startMatch[1];
+    const containerId = await getContainerId(computerId, userId);
+    if (!containerId) return sendJson(res, 404, { error: "Computer not found" });
+
+    try {
+      await orchRequest("POST", `/containers/${containerId}/start`);
+      await fetch(`${SUPABASE_URL}/rest/v1/computers?id=eq.${computerId}&user_id=eq.${userId}`, {
+        method: "PATCH",
+        headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "running", updated_at: new Date().toISOString() }),
+      });
+      return sendJson(res, 200, { ok: true });
+    } catch (err) {
+      return sendJson(res, 502, { error: err.message });
+    }
+  }
+
+  // POST /v1/computers/:id/python
+  const pythonMatch = url.pathname.match(/^\/v1\/computers\/([^/]+)\/python$/);
+  if (req.method === "POST" && pythonMatch) {
+    const computerId = pythonMatch[1];
+    const containerId = await getContainerId(computerId, userId);
+    if (!containerId) return sendJson(res, 404, { error: "Computer not found" });
+
+    const body = await parseBody(req);
+    try {
+      const orchRes = await orchRequest("POST", `/containers/${containerId}/python`, body);
+      res.writeHead(orchRes.status, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
+      return res.end(orchRes.body);
+    } catch (err) {
+      return sendJson(res, 502, { error: err.message });
+    }
+  }
+
+  // POST /v1/computers/:id/clone
+  const cloneMatch = url.pathname.match(/^\/v1\/computers\/([^/]+)\/clone$/);
+  if (req.method === "POST" && cloneMatch) {
+    const computerId = cloneMatch[1];
+    const compRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/computers?id=eq.${computerId}&user_id=eq.${userId}`,
+      { headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` } }
+    );
+    const comps = await compRes.json();
+    if (!Array.isArray(comps) || comps.length === 0) return sendJson(res, 404, { error: "Computer not found" });
+    const orig = comps[0];
+
+    const body = await parseBody(req);
+    const cloneName = body.name || `${orig.name} (copy)`;
+
+    // Create a new container with same specs
+    try {
+      const orchRes = await orchRequest("POST", "/containers", { name: cloneName, cpu: orig.cpu, ram: orig.ram });
+      const orchData = JSON.parse(orchRes.body.toString());
+      if (orchRes.status !== 201) return sendJson(res, orchRes.status, orchData);
+
+      const supaCreateRes = await fetch(`${SUPABASE_URL}/rest/v1/computers`, {
+        method: "POST",
+        headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, "Content-Type": "application/json", Prefer: "return=representation" },
+        body: JSON.stringify({
+          user_id: userId, workspace_id: orig.workspace_id, name: cloneName, os: orig.os,
+          cpu: orig.cpu, ram: orig.ram, disk_size_gb: orig.disk_size_gb, resolution: orig.resolution,
+          status: "running", container_id: orchData.id, hostname: `127.0.0.1:${orchData.port}`,
+        }),
+      });
+      const computer = await supaCreateRes.json();
+      return sendJson(res, 201, Array.isArray(computer) ? computer[0] : computer);
+    } catch (err) {
+      return sendJson(res, 500, { error: err.message });
     }
   }
 

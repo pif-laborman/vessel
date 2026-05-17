@@ -119,6 +119,14 @@ function restartContainer(containerId) {
   execSync(`docker restart ${containerId}`, { timeout: 30000 });
 }
 
+function stopContainerOnly(containerId) {
+  execSync(`docker stop ${containerId}`, { timeout: 15000 });
+}
+
+function startContainer(containerId) {
+  execSync(`docker start ${containerId}`, { timeout: 15000 });
+}
+
 function proxyToAgent(port, method, path, body) {
   return new Promise((resolve, reject) => {
     const opts = {
@@ -206,15 +214,27 @@ const server = http.createServer(async (req, res) => {
   const restartMatch = url.pathname.match(/^\/containers\/([a-f0-9]+)\/restart$/);
   if (req.method === "POST" && restartMatch) {
     const id = restartMatch[1];
-    if (!containers.has(id)) {
-      return sendJson(res, 404, { error: "Container not found" });
-    }
-    try {
-      restartContainer(id);
-      return sendJson(res, 200, { ok: true });
-    } catch (err) {
-      return sendJson(res, 500, { error: err.message });
-    }
+    if (!containers.has(id)) return sendJson(res, 404, { error: "Container not found" });
+    try { restartContainer(id); return sendJson(res, 200, { ok: true }); }
+    catch (err) { return sendJson(res, 500, { error: err.message }); }
+  }
+
+  // Stop container (without removing)
+  const stopOnlyMatch = url.pathname.match(/^\/containers\/([a-f0-9]+)\/stop$/);
+  if (req.method === "POST" && stopOnlyMatch) {
+    const id = stopOnlyMatch[1];
+    if (!containers.has(id)) return sendJson(res, 404, { error: "Container not found" });
+    try { stopContainerOnly(id); return sendJson(res, 200, { ok: true }); }
+    catch (err) { return sendJson(res, 500, { error: err.message }); }
+  }
+
+  // Start a stopped container
+  const startMatch = url.pathname.match(/^\/containers\/([a-f0-9]+)\/start$/);
+  if (req.method === "POST" && startMatch) {
+    const id = startMatch[1];
+    if (!containers.has(id)) return sendJson(res, 404, { error: "Container not found" });
+    try { startContainer(id); return sendJson(res, 200, { ok: true }); }
+    catch (err) { return sendJson(res, 500, { error: err.message }); }
   }
 
   // Proxy to agent: /containers/:id/screenshot, /actions, /bash, /python, /health
