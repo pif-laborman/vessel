@@ -7,9 +7,10 @@ interface Props {
   computerName: string;
   onDelete: () => void;
   onRestart: () => void;
+  onSettings: () => void;
 }
 
-export function ComputerMenu({ computerId, computerName, onDelete, onRestart }: Props) {
+export function ComputerMenu({ computerId, computerName, onDelete, onRestart, onSettings }: Props) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -69,7 +70,7 @@ export function ComputerMenu({ computerId, computerName, onDelete, onRestart }: 
         >
           {/* Settings */}
           <button
-            onClick={() => { setOpen(false); }}
+            onClick={() => { setOpen(false); onSettings(); }}
             className="w-full flex items-center justify-between transition-colors"
             style={{
               padding: "8px 12px",

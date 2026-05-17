@@ -8,6 +8,7 @@ import { ApiKeysPanel } from "./ApiKeysPanel";
 import { DesktopViewer } from "./DesktopViewer";
 import { CreateComputerPopover } from "./CreateComputerPopover";
 import { ComputerMenu } from "./ComputerMenu";
+import { ComputerSettings } from "./ComputerSettings";
 
 interface Profile {
   id: string;
@@ -126,6 +127,7 @@ export function DashboardShell({
     initialComputers.length > 0 ? initialComputers[0].id : null
   );
   const [showCreate, setShowCreate] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   const displayName = profile?.display_name || user.email?.split("@")[0] || "User";
   const initials = displayName.charAt(0).toUpperCase();
@@ -314,6 +316,7 @@ export function DashboardShell({
                 computerName={selectedComputer.name}
                 onDelete={handleDelete}
                 onRestart={handleRestart}
+                onSettings={() => setShowSettings(true)}
               />
             </div>
 
@@ -364,6 +367,19 @@ export function DashboardShell({
           </div>
         )}
       </div>
+
+      {/* Settings modal */}
+      {showSettings && selectedComputer && (
+        <ComputerSettings
+          computer={selectedComputer}
+          onClose={() => setShowSettings(false)}
+          onDelete={() => { setShowSettings(false); handleDelete(); }}
+          onRename={(newName) => {
+            setComputers((prev) => prev.map((c) => c.id === selectedComputer.id ? { ...c, name: newName } : c));
+            setShowSettings(false);
+          }}
+        />
+      )}
     </div>
   );
 }
