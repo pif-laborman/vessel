@@ -6,6 +6,7 @@ import type { User } from "@supabase/supabase-js";
 import { SignOutButton } from "./SignOutButton";
 import { ComputerGrid } from "./ComputerGrid";
 import { ApiKeysPanel } from "./ApiKeysPanel";
+import { DesktopViewer } from "./DesktopViewer";
 
 interface Profile {
   id: string;
@@ -62,6 +63,7 @@ export function DashboardShell({
   const [computers] = useState(initialComputers);
   const [sortBy, setSortBy] = useState<"last_edited" | "name" | "created">("last_edited");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewingComputer, setViewingComputer] = useState<{ id: string; name: string } | null>(null);
 
   const displayName = profile?.display_name || user.email?.split("@")[0] || "User";
   const initials = displayName.charAt(0).toUpperCase();
@@ -302,10 +304,10 @@ export function DashboardShell({
                   <p style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)", marginBottom: "var(--space-6)" }}>
                     Press <kbd style={{ padding: "1px 6px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)", fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}>N</kbd> or click below to spin up your first computer.
                   </p>
-                  <ComputerGrid computers={[]} viewMode={viewMode} />
+                  <ComputerGrid computers={[]} viewMode={viewMode} onSelectComputer={(id, name) => setViewingComputer({ id, name })} />
                 </div>
               ) : (
-                <ComputerGrid computers={computers} viewMode={viewMode} />
+                <ComputerGrid computers={computers} viewMode={viewMode} onSelectComputer={(id, name) => setViewingComputer({ id, name })} />
               )}
             </div>
           </>
@@ -356,6 +358,15 @@ export function DashboardShell({
           </div>
         )}
       </div>
+
+      {/* Desktop viewer overlay */}
+      {viewingComputer && (
+        <DesktopViewer
+          computerId={viewingComputer.id}
+          computerName={viewingComputer.name}
+          onClose={() => setViewingComputer(null)}
+        />
+      )}
     </div>
   );
 }

@@ -319,11 +319,12 @@ function NewComputerCard({ onClick }: { onClick: () => void }) {
   );
 }
 
-function ComputerCard({ computer }: { computer: Computer }) {
+function ComputerCard({ computer, onClick }: { computer: Computer; onClick: () => void }) {
   const statusColor = STATUS_COLORS[computer.status] || "#999";
 
   return (
     <div
+      onClick={onClick}
       className="card group transition-shadow hover:shadow-md cursor-pointer"
       style={{ padding: 0, overflow: "hidden", minHeight: 160 }}
     >
@@ -353,11 +354,12 @@ function ComputerCard({ computer }: { computer: Computer }) {
   );
 }
 
-function ComputerRow({ computer }: { computer: Computer }) {
+function ComputerRow({ computer, onClick }: { computer: Computer; onClick: () => void }) {
   const statusColor = STATUS_COLORS[computer.status] || "#999";
 
   return (
     <div
+      onClick={onClick}
       className="flex items-center hover:bg-[var(--bg-surface)] transition-colors cursor-pointer"
       style={{ padding: "10px 16px", borderBottom: "1px solid var(--border)" }}
     >
@@ -384,9 +386,11 @@ function ComputerRow({ computer }: { computer: Computer }) {
 export function ComputerGrid({
   computers: initialComputers,
   viewMode,
+  onSelectComputer,
 }: {
   computers: Computer[];
   viewMode: "grid" | "list";
+  onSelectComputer?: (id: string, name: string) => void;
 }) {
   const [computers, setComputers] = useState(initialComputers);
   const [showCreate, setShowCreate] = useState(false);
@@ -437,7 +441,7 @@ export function ComputerGrid({
           )}
         </div>
         {computers.map((c) => (
-          <ComputerRow key={c.id} computer={c} />
+          <ComputerRow key={c.id} computer={c} onClick={() => onSelectComputer?.(c.id, c.name)} />
         ))}
       </div>
     );
@@ -458,7 +462,7 @@ export function ComputerGrid({
         )}
       </div>
       {computers.map((c) => (
-        <ComputerCard key={c.id} computer={c} />
+        <ComputerCard key={c.id} computer={c} onClick={() => onSelectComputer?.(c.id, c.name)} />
       ))}
     </div>
   );

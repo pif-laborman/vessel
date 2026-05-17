@@ -1,8 +1,23 @@
 import { createClient } from "@/lib/supabase-server";
-import { createAdminClient } from "@/lib/supabase-admin";
 import { NextResponse } from "next/server";
 
-// POST /api/computers - Create a new computer
+const VPS_API = process.env.VESSEL_VPS_API_URL || "https://meetpif.com/vessel-api";
+const INTERNAL_TOKEN = process.env.VESSEL_INTERNAL_TOKEN || "";
+
+async function vpsFetch(path: string, method: string, userId: string, body?: Record<string, unknown>) {
+  const res = await fetch(`${VPS_API}${path}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${INTERNAL_TOKEN}`,
+      "X-Vessel-User-Id": userId,
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return res;
+}
+
+// POST /api/computers - Create a new computer (proxied to VPS)
 export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -13,67 +28,21 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const name = body.name || "MyComputer";
-    const cpu = [1, 2, 4, 8, 16].includes(body.cpu) ? body.cpu : 1;
-    const ram = [4, 8, 16, 32, 64].includes(body.ram) ? body.ram : 4;
-    const diskSizeGb = body.disk_size_gb || 8;
+    const vpsRes = await vpsFetch("/v1/computers", "POST", user.id, {
+      name: body.name || "MyComputer",
+      cpu: body.cpu || 1,
+      ram: body.ram || 4,
+      disk_size_gb: body.disk_size_gb || 8,
+    });
 
-    const admin = createAdminClient();
-
-    // Ensure user has a default workspace
-    let { data: workspace } = await admin
-      .from("workspaces")
-      .select("id")
-      .eq("user_id", user.id)
-      .limit(1)
-      .single();
-
-    if (!workspace) {
-      const { data: newWs, error: wsErr } = await admin
-        .from("workspaces")
-        .insert({ user_id: user.id, name: "Default" })
-        .select("id")
-        .single();
-      if (wsErr) {
-        return NextResponse.json({ error: wsErr.message }, { status: 500 });
-      }
-      workspace = newWs;
-    }
-
-    // Create the computer record
-    const { data: computer, error } = await admin
-      .from("computers")
-      .insert({
-        workspace_id: workspace!.id,
-        user_id: user.id,
-        name,
-        os: "linux",
-        cpu,
-        ram,
-        disk_size_gb: diskSizeGb,
-        status: "creating",
-      })
-      .select("*")
-      .single();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    // TODO: trigger actual container provisioning here
-    // For now, simulate transition to "running" after insert
-    await admin
-      .from("computers")
-      .update({ status: "running", updated_at: new Date().toISOString() })
-      .eq("id", computer.id);
-
-    return NextResponse.json({ ...computer, status: "running" }, { status: 201 });
+    const data = await vpsRes.json();
+    return NextResponse.json(data, { status: vpsRes.status });
   } catch {
-    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+    return NextResponse.json({ error: "Failed to create computer" }, { status: 500 });
   }
 }
 
-// GET /api/computers - List all computers
+// GET /api/computers - List computers (proxied to VPS)
 export async function GET() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -82,11 +51,11 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: computers } = await supabase
-    .from("computers")
-    .select("*")
-    .not("status", "eq", "terminated")
-    .order("created_at", { ascending: false });
-
-  return NextResponse.json({ computers: computers || [], total: computers?.length || 0 });
+  try {
+    const vpsRes = await vpsFetch("/v1/computers", "GET", user.id);
+    const data = await vpsRes.json();
+    return NextResponse.json(data, { status: vpsRes.status });
+  } catch {
+    return NextResponse.json({ error: "Failed to list computers" }, { status: 500 });
+  }
 }
