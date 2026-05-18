@@ -219,7 +219,7 @@ function ProfilePanel({ displayName, email, plan, initials }: { displayName: str
 // Computer settings panel
 function ComputerPanel({ computer, onDelete, onRename }: { computer: Computer; onDelete: () => void; onRename: (name: string) => void }) {
   const [name, setName] = useState(computer.name);
-  const apiEndpoint = `https://meetpif.com/corix-api/v1/computers/${computer.id}`;
+  const apiEndpoint = `https://corix.dev/api/v1/computers/${computer.id}`;
   const res = computer.resolution || "1280x720x24";
   const resDisplay = res.replace(/x24$/i, "").replace(/x/g, " x ");
 

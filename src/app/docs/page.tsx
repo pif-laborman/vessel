@@ -162,7 +162,7 @@ export default function DocsPage() {
           <h1 id="introduction" style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: "var(--text-3xl)", letterSpacing: "-0.02em", marginBottom: "var(--space-4)" }}>Introduction</h1>
           <P>Corix provides cloud-based desktop infrastructure for AI agents. Spin up a virtual machine, connect any AI model, and let it autonomously control the computer through screenshots, mouse clicks, keyboard input, and shell commands.</P>
           <P>Corix is a plain HTTP API. Any language with an HTTP client works. We also provide Python and TypeScript SDKs.</P>
-          <P>Base URL: <code style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-sm)", background: "var(--bg-surface)", padding: "2px 6px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>https://meetpif.com/corix-api</code></P>
+          <P>Base URL: <code style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-sm)", background: "var(--bg-surface)", padding: "2px 6px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>https://corix.dev/api</code></P>
 
           <SectionTitle id="quickstart">Quickstart</SectionTitle>
           <P>Get a computer running in three lines of code:</P>
@@ -175,13 +175,13 @@ result = computer.prompt(
 )
 print(result.output)`} />
           <CodeBlock title="cURL" code={`# Create a computer
-curl -X POST https://meetpif.com/corix-api/v1/computers \\
+curl -X POST https://corix.dev/api/v1/computers \\
   -H "Authorization: Bearer vsl_your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{"name": "my-agent", "cpu": 2, "ram": 4}'
 
 # Take a screenshot
-curl https://meetpif.com/corix-api/v1/computers/{id}/screenshot \\
+curl https://corix.dev/api/v1/computers/{id}/screenshot \\
   -H "Authorization: Bearer vsl_your_api_key" \\
   --output screenshot.png`} />
 
@@ -409,7 +409,7 @@ curl https://meetpif.com/corix-api/v1/computers/{id}/screenshot \\
           <SectionTitle id="upload-file">Upload file</SectionTitle>
           <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/files/upload?path=/root/data.csv" /></p>
           <P>Upload a file to the specified path inside the computer. Send the raw file content as the request body.</P>
-          <CodeBlock title="cURL example" code={`curl -X POST "https://meetpif.com/corix-api/v1/computers/{id}/files/upload?path=/root/data.csv" \\
+          <CodeBlock title="cURL example" code={`curl -X POST "https://corix.dev/api/v1/computers/{id}/files/upload?path=/root/data.csv" \\
   -H "Authorization: Bearer vsl_your_api_key" \\
   --data-binary @local_file.csv`} />
 
