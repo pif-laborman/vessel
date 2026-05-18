@@ -90,7 +90,11 @@ export function WorkspaceMenu({ displayName, initials, email, plan, workspaces, 
           {activeWorkspaceIconUrl ? (
             <img src={activeWorkspaceIconUrl} alt="" className="w-full h-full object-cover" />
           ) : (
-            sidebarInitial
+            <svg width="16" height="16" viewBox="0 0 100 100" aria-label="Corix">
+              <rect x="38.5" y="10" width="23" height="23" rx="4" fill="white" />
+              <rect x="10" y="38.5" width="23" height="23" rx="4" fill="white" />
+              <rect x="38.5" y="67" width="23" height="23" rx="4" fill="white" />
+            </svg>
           )}
         </div>
         <span className="truncate flex-1" style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: "var(--text-sm)" }}>

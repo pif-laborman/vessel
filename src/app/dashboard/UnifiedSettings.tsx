@@ -124,6 +124,21 @@ function WorkspacePanel({ workspaceName, workspaceId, workspaceIconUrl, apiKeys,
     }
   }
 
+  async function handleIconRemove() {
+    if (!workspaceId) return;
+    setUploading(true);
+    try {
+      const res = await fetch(`/api/workspaces/${workspaceId}/icon`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.icon_url === null) {
+        setIconUrl(null);
+        onIconUploaded("");
+      }
+    } finally {
+      setUploading(false);
+    }
+  }
+
   return (
     <div>
       <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: "var(--text-lg)", marginBottom: "var(--space-6)" }}>Workspace settings</h2>
@@ -134,17 +149,13 @@ function WorkspacePanel({ workspaceName, workspaceId, workspaceIconUrl, apiKeys,
         <div>
           <label style={{ display: "block", fontSize: "var(--text-xs)", fontWeight: 500, color: "var(--text-secondary)", marginBottom: "var(--space-2)", fontFamily: "var(--font-display)" }}>Icon</label>
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleIconUpload} className="hidden" style={{ display: "none" }} />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center justify-center hover:opacity-80 transition-opacity overflow-hidden"
+          <div className="flex items-center justify-center overflow-hidden"
             style={{
               width: 64,
               height: 64,
               borderRadius: "var(--radius-md)",
               border: "1px solid var(--border)",
-              background: "var(--bg-surface)",
-              cursor: "pointer",
-              position: "relative",
+              background: iconUrl ? "var(--bg-surface)" : "var(--fill-action)",
             }}
           >
             {uploading ? (
@@ -152,11 +163,31 @@ function WorkspacePanel({ workspaceName, workspaceId, workspaceIconUrl, apiKeys,
             ) : iconUrl ? (
               <img src={iconUrl} alt="" className="w-full h-full object-cover" />
             ) : (
-              <span style={{ fontSize: "var(--text-2xl)" }}>
-                {workspaceName.charAt(0).toUpperCase()}
-              </span>
+              <svg width="28" height="28" viewBox="0 0 100 100" aria-label="Corix">
+                <rect x="38.5" y="10" width="23" height="23" rx="4" fill="white" />
+                <rect x="10" y="38.5" width="23" height="23" rx="4" fill="white" />
+                <rect x="38.5" y="67" width="23" height="23" rx="4" fill="white" />
+              </svg>
             )}
-          </button>
+          </div>
+          <div className="flex gap-2" style={{ marginTop: "var(--space-2)" }}>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="hover:opacity-70 transition-opacity"
+              style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)", cursor: "pointer", background: "none", border: "none", padding: 0 }}
+            >
+              {iconUrl ? "Change" : "Upload"}
+            </button>
+            {iconUrl && (
+              <button
+                onClick={handleIconRemove}
+                className="hover:opacity-70 transition-opacity"
+                style={{ fontSize: "var(--text-xs)", color: "var(--color-error)", cursor: "pointer", background: "none", border: "none", padding: 0 }}
+              >
+                Remove
+              </button>
+            )}
+          </div>
         </div>
         {/* Name */}
         <div className="flex-1">
@@ -172,7 +203,7 @@ function WorkspacePanel({ workspaceName, workspaceId, workspaceIconUrl, apiKeys,
         <ApiKeysPanel initialKeys={apiKeys} />
       </div>
 
-      <a href="https://docs.corix.dev" style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)", fontFamily: "var(--font-body)" }} className="inline-flex items-center gap-1 hover:opacity-70 transition-opacity">
+      <a href="/docs" style={{ fontSize: "var(--text-sm)", color: "var(--text-secondary)", fontFamily: "var(--font-body)" }} className="inline-flex items-center gap-1 hover:opacity-70 transition-opacity">
         API docs <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
       </a>
 

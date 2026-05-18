@@ -67,3 +67,39 @@ export async function POST(
 
   return NextResponse.json({ icon_url: iconUrl });
 }
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
+  const admin = createAdminClient();
+
+  const { data: workspace } = await admin
+    .from("workspaces")
+    .select("id, icon_url")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!workspace) return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
+
+  // Remove file from storage if it exists
+  if (workspace.icon_url) {
+    const path = workspace.icon_url.split("/workspace-icons/").pop();
+    if (path) {
+      await admin.storage.from("workspace-icons").remove([decodeURIComponent(path)]);
+    }
+  }
+
+  await admin
+    .from("workspaces")
+    .update({ icon_url: null, updated_at: new Date().toISOString() })
+    .eq("id", id);
+
+  return NextResponse.json({ icon_url: null });
+}
