@@ -38,7 +38,7 @@ Orgo competitor. API-first cloud desktop infrastructure that lets developers spi
 ### Database (Supabase project: corix, ref: zyycljctvwquirciolfl)
 - **profiles**: auto-created on signup via trigger, tracks plan + limits + api_calls_today
 - **workspaces**: groups computers, has icon_url (uploaded to Supabase Storage)
-- **api_keys**: vsl_ prefix, SHA-256 hashed, key_prefix for display
+- **api_keys**: crx_ prefix, SHA-256 hashed, key_prefix for display
 - **computers**: 17 columns including container_id, hostname, auto_stop_minutes
 - **computer_actions**: audit log (table exists, not yet recording)
 - All tables have RLS scoped by user_id
@@ -60,7 +60,7 @@ Orgo competitor. API-first cloud desktop infrastructure that lets developers spi
 - Execution: bash, python
 - Files: list, upload, download, delete
 - Streaming: WebSocket terminal, noVNC real-time desktop
-- Auth: vsl_ API keys (SHA-256 lookup), internal server token bypass
+- Auth: crx_ API keys (SHA-256 lookup), internal server token bypass
 - Rate limiting: 50,000 calls/day starter, unlimited pro/scale. Internal calls bypass.
 
 ## Desktop viewer

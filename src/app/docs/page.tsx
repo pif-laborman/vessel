@@ -176,18 +176,18 @@ result = computer.prompt(
 print(result.output)`} />
           <CodeBlock title="cURL" code={`# Create a computer
 curl -X POST https://corix.dev/api/v1/computers \\
-  -H "Authorization: Bearer vsl_your_api_key" \\
+  -H "Authorization: Bearer crx_your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{"name": "my-agent", "cpu": 2, "ram": 4}'
 
 # Take a screenshot
 curl https://corix.dev/api/v1/computers/{id}/screenshot \\
-  -H "Authorization: Bearer vsl_your_api_key" \\
+  -H "Authorization: Bearer crx_your_api_key" \\
   --output screenshot.png`} />
 
           <SectionTitle id="authentication">Authentication</SectionTitle>
           <P>All API requests require a Bearer token. Get your API key from the dashboard.</P>
-          <CodeBlock title="Header" code={`Authorization: Bearer vsl_your_api_key`} />
+          <CodeBlock title="Header" code={`Authorization: Bearer crx_your_api_key`} />
 
           <SectionTitle id="computer-object">Computer object</SectionTitle>
           <P>A computer is a virtual machine with a full Linux desktop (XFCE), Firefox, Python, Node.js, and git.</P>
@@ -410,7 +410,7 @@ curl https://corix.dev/api/v1/computers/{id}/screenshot \\
           <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/files/upload?path=/root/data.csv" /></p>
           <P>Upload a file to the specified path inside the computer. Send the raw file content as the request body.</P>
           <CodeBlock title="cURL example" code={`curl -X POST "https://corix.dev/api/v1/computers/{id}/files/upload?path=/root/data.csv" \\
-  -H "Authorization: Bearer vsl_your_api_key" \\
+  -H "Authorization: Bearer crx_your_api_key" \\
   --data-binary @local_file.csv`} />
 
           <SectionTitle id="download-file">Download file</SectionTitle>
@@ -424,7 +424,7 @@ curl https://corix.dev/api/v1/computers/{id}/screenshot \\
           {/* Streaming */}
           <SectionTitle id="ws-terminal">WebSocket terminal</SectionTitle>
           <P>Connect to a real-time interactive shell session via WebSocket. The connection stays open for bidirectional I/O.</P>
-          <CodeBlock title="Endpoint" code={`wss://compute.corix.dev/ws/terminal/:computerId?token=vsl_your_api_key`} />
+          <CodeBlock title="Endpoint" code={`wss://compute.corix.dev/ws/terminal/:computerId?token=crx_your_api_key`} />
           <P>Send JSON messages to write to stdin:</P>
           <CodeBlock title="Client to server" code={`{ "type": "stdin", "data": "ls -la\\n" }`} />
           <P>Receive JSON messages with stdout, stderr, and exit events:</P>
@@ -494,7 +494,7 @@ ws.send(JSON.stringify({ type: "stdin", data: "echo hello\\n" }));`} />
           <CodeBlock title="Install" code={`pip install corix-sdk`} />
           <CodeBlock title="Usage" code={`import corix
 
-client = corix.Client(api_key="vsl_your_api_key")
+client = corix.Client(api_key="crx_your_api_key")
 computer = client.computers.create(name="my-agent", cpu=2, ram=8)
 
 # Autonomous agent mode
@@ -520,7 +520,7 @@ computer.terminate()`} />
           <CodeBlock title="Install" code={`npm install @corix/sdk`} />
           <CodeBlock title="Usage" code={`import { Corix } from "@corix/sdk";
 
-const client = new Corix({ apiKey: "vsl_your_api_key" });
+const client = new Corix({ apiKey: "crx_your_api_key" });
 const computer = await client.computers.create({
   name: "my-agent", cpu: 2, ram: 8,
 });

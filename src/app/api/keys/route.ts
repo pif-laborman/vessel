@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 function generateApiKey(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  let key = "vsl_";
+  let key = "crx_";
   for (let i = 0; i < 40; i++) {
     key += chars.charAt(Math.floor(Math.random() * chars.length));
   }

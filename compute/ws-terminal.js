@@ -15,8 +15,8 @@ async function verifyAuth(token) {
   // Internal token
   if (token === INTERNAL_TOKEN) return "internal";
 
-  // vsl_ API key
-  if (!token.startsWith("vsl_")) return null;
+  // crx_ or legacy vsl_ API key
+  if (!token.startsWith("crx_") && !token.startsWith("vsl_")) return null;
   const hash = crypto.createHash("sha256").update(token).digest("hex");
   try {
     const res = await fetch(

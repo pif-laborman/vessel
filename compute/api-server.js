@@ -54,13 +54,13 @@ async function verifyAuth(req) {
     return userId || null;
   }
 
-  // External vsl_ API key
+  // External API key (crx_ or legacy vsl_)
   return verifyApiKey(token);
 }
 
 // Verify API key against Supabase
 async function verifyApiKey(apiKey) {
-  if (!apiKey || !apiKey.startsWith("vsl_")) return null;
+  if (!apiKey || (!apiKey.startsWith("crx_") && !apiKey.startsWith("vsl_"))) return null;
 
   // Hash the key
   const hash = crypto.createHash("sha256").update(apiKey).digest("hex");
