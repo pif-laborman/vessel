@@ -64,7 +64,7 @@ export default function PricingPage() {
                 <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
               </svg>
             </div>
-            Vessel
+            Corix
           </Link>
           <div className="hidden sm:flex items-center gap-6">
             <Link href="/docs" className="hover:opacity-70 transition-opacity" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>Docs</Link>

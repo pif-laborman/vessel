@@ -4,9 +4,9 @@ const http = require("http");
 const crypto = require("crypto");
 
 const PORT = 8423;
-const SUPABASE_URL = process.env.VESSEL_SUPABASE_URL || "";
-const SUPABASE_SERVICE_KEY = process.env.VESSEL_SUPABASE_SERVICE_KEY || "";
-const INTERNAL_TOKEN = process.env.VESSEL_INTERNAL_TOKEN || "vsl-internal-mvp-2026";
+const SUPABASE_URL = process.env.CORIX_SUPABASE_URL || "";
+const SUPABASE_SERVICE_KEY = process.env.CORIX_SUPABASE_SERVICE_KEY || "";
+const INTERNAL_TOKEN = process.env.CORIX_INTERNAL_TOKEN || "vsl-internal-mvp-2026";
 
 // Verify API key or internal token, return userId
 async function verifyAuth(token) {
@@ -45,7 +45,7 @@ async function getContainerId(computerId, userId) {
 
 const server = http.createServer((req, res) => {
   res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
-  res.end(JSON.stringify({ status: "ok", service: "vessel-ws-terminal" }));
+  res.end(JSON.stringify({ status: "ok", service: "corix-ws-terminal" }));
 });
 
 const wss = new WebSocketServer({ server });

@@ -184,7 +184,7 @@ const server = http.createServer(async (req, res) => {
   if (req.method === "POST" && url.pathname === "/python") {
     const body = await parseBody(req);
     if (!body.code) return sendJson(res, 400, { error: "Missing 'code'" });
-    const tmpFile = `/tmp/vessel_py_${Date.now()}.py`;
+    const tmpFile = `/tmp/corix_py_${Date.now()}.py`;
     fs.writeFileSync(tmpFile, body.code);
     const result = runBash(`python3 ${tmpFile}`, body.cwd);
     try { fs.unlinkSync(tmpFile); } catch {}
@@ -253,5 +253,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`Vessel agent listening on port ${PORT}`);
+  console.log(`Corix agent listening on port ${PORT}`);
 });

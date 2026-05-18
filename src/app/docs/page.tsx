@@ -138,7 +138,7 @@ export default function DocsPage() {
                 <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
               </svg>
             </div>
-            Vessel
+            Corix
           </Link>
           <span style={{ fontSize: "var(--text-sm)", color: "var(--text-tertiary)", marginLeft: "var(--space-2)" }}>Docs</span>
         </div>
@@ -160,28 +160,28 @@ export default function DocsPage() {
 
         <main className="flex-1 min-w-0" style={{ paddingTop: "var(--space-8)", paddingBottom: "var(--space-16)" }}>
           <h1 id="introduction" style={{ fontFamily: "var(--font-display)", fontWeight: 500, fontSize: "var(--text-3xl)", letterSpacing: "-0.02em", marginBottom: "var(--space-4)" }}>Introduction</h1>
-          <P>Vessel provides cloud-based desktop infrastructure for AI agents. Spin up a virtual machine, connect any AI model, and let it autonomously control the computer through screenshots, mouse clicks, keyboard input, and shell commands.</P>
-          <P>Vessel is a plain HTTP API. Any language with an HTTP client works. We also provide Python and TypeScript SDKs.</P>
-          <P>Base URL: <code style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-sm)", background: "var(--bg-surface)", padding: "2px 6px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>https://meetpif.com/vessel-api</code></P>
+          <P>Corix provides cloud-based desktop infrastructure for AI agents. Spin up a virtual machine, connect any AI model, and let it autonomously control the computer through screenshots, mouse clicks, keyboard input, and shell commands.</P>
+          <P>Corix is a plain HTTP API. Any language with an HTTP client works. We also provide Python and TypeScript SDKs.</P>
+          <P>Base URL: <code style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-sm)", background: "var(--bg-surface)", padding: "2px 6px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border)" }}>https://meetpif.com/corix-api</code></P>
 
           <SectionTitle id="quickstart">Quickstart</SectionTitle>
           <P>Get a computer running in three lines of code:</P>
-          <CodeBlock title="Python" code={`import vessel
+          <CodeBlock title="Python" code={`import corix
 
-computer = vessel.create(os="linux", cpu=2, ram="8gb")
+computer = corix.create(os="linux", cpu=2, ram="8gb")
 result = computer.prompt(
     model="claude-sonnet-4-6",
-    task="Open the browser and search for 'Vessel AI'"
+    task="Open the browser and search for 'Corix AI'"
 )
 print(result.output)`} />
           <CodeBlock title="cURL" code={`# Create a computer
-curl -X POST https://meetpif.com/vessel-api/v1/computers \\
+curl -X POST https://meetpif.com/corix-api/v1/computers \\
   -H "Authorization: Bearer vsl_your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{"name": "my-agent", "cpu": 2, "ram": 4}'
 
 # Take a screenshot
-curl https://meetpif.com/vessel-api/v1/computers/{id}/screenshot \\
+curl https://meetpif.com/corix-api/v1/computers/{id}/screenshot \\
   -H "Authorization: Bearer vsl_your_api_key" \\
   --output screenshot.png`} />
 
@@ -359,7 +359,7 @@ curl https://meetpif.com/vessel-api/v1/computers/{id}/screenshot \\
 
           <SectionTitle id="action-type">Type text</SectionTitle>
           <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/type" /></p>
-          <CodeBlock title="Request" code={`{ "text": "Hello from Vessel" }`} />
+          <CodeBlock title="Request" code={`{ "text": "Hello from Corix" }`} />
 
           <SectionTitle id="action-key">Key press</SectionTitle>
           <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/key" /></p>
@@ -409,7 +409,7 @@ curl https://meetpif.com/vessel-api/v1/computers/{id}/screenshot \\
           <SectionTitle id="upload-file">Upload file</SectionTitle>
           <p style={{ marginBottom: "var(--space-3)" }}><Endpoint method="POST" path="/v1/computers/:id/files/upload?path=/root/data.csv" /></p>
           <P>Upload a file to the specified path inside the computer. Send the raw file content as the request body.</P>
-          <CodeBlock title="cURL example" code={`curl -X POST "https://meetpif.com/vessel-api/v1/computers/{id}/files/upload?path=/root/data.csv" \\
+          <CodeBlock title="cURL example" code={`curl -X POST "https://meetpif.com/corix-api/v1/computers/{id}/files/upload?path=/root/data.csv" \\
   -H "Authorization: Bearer vsl_your_api_key" \\
   --data-binary @local_file.csv`} />
 
@@ -424,7 +424,7 @@ curl https://meetpif.com/vessel-api/v1/computers/{id}/screenshot \\
           {/* Streaming */}
           <SectionTitle id="ws-terminal">WebSocket terminal</SectionTitle>
           <P>Connect to a real-time interactive shell session via WebSocket. The connection stays open for bidirectional I/O.</P>
-          <CodeBlock title="Endpoint" code={`wss://meetpif.com/vessel-ws/terminal/:computerId?token=vsl_your_api_key`} />
+          <CodeBlock title="Endpoint" code={`wss://meetpif.com/corix-ws/terminal/:computerId?token=vsl_your_api_key`} />
           <P>Send JSON messages to write to stdin:</P>
           <CodeBlock title="Client to server" code={`{ "type": "stdin", "data": "ls -la\\n" }`} />
           <P>Receive JSON messages with stdout, stderr, and exit events:</P>
@@ -432,7 +432,7 @@ curl https://meetpif.com/vessel-api/v1/computers/{id}/screenshot \\
 { "type": "stderr", "data": "command not found" }
 { "type": "exit", "code": 0 }`} />
           <CodeBlock title="JavaScript example" code={`const ws = new WebSocket(
-  "wss://meetpif.com/vessel-ws/terminal/" + computerId + "?token=" + apiKey
+  "wss://meetpif.com/corix-ws/terminal/" + computerId + "?token=" + apiKey
 );
 
 ws.onmessage = (event) => {
@@ -491,10 +491,10 @@ ws.send(JSON.stringify({ type: "stdin", data: "echo hello\\n" }));`} />
 
           {/* SDKs */}
           <SectionTitle id="python-sdk">Python SDK</SectionTitle>
-          <CodeBlock title="Install" code={`pip install vessel-sdk`} />
-          <CodeBlock title="Usage" code={`import vessel
+          <CodeBlock title="Install" code={`pip install corix-sdk`} />
+          <CodeBlock title="Usage" code={`import corix
 
-client = vessel.Client(api_key="vsl_your_api_key")
+client = corix.Client(api_key="vsl_your_api_key")
 computer = client.computers.create(name="my-agent", cpu=2, ram=8)
 
 # Autonomous agent mode
@@ -517,10 +517,10 @@ computer.restart()
 computer.terminate()`} />
 
           <SectionTitle id="typescript-sdk">TypeScript SDK</SectionTitle>
-          <CodeBlock title="Install" code={`npm install @vessel/sdk`} />
-          <CodeBlock title="Usage" code={`import { Vessel } from "@vessel/sdk";
+          <CodeBlock title="Install" code={`npm install @corix/sdk`} />
+          <CodeBlock title="Usage" code={`import { Corix } from "@corix/sdk";
 
-const client = new Vessel({ apiKey: "vsl_your_api_key" });
+const client = new Corix({ apiKey: "vsl_your_api_key" });
 const computer = await client.computers.create({
   name: "my-agent", cpu: 2, ram: 8,
 });
@@ -531,7 +531,7 @@ const result = await computer.prompt({
 });
 
 await computer.click(500, 300);
-await computer.type("Hello from Vessel");
+await computer.type("Hello from Corix");
 const output = await computer.bash("ls -la");
 const pyOutput = await computer.python("print('hello')");
 

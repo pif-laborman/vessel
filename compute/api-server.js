@@ -3,11 +3,11 @@ const crypto = require("crypto");
 
 const PORT = 8422;
 const ORCH_URL = "http://127.0.0.1:8421";
-const ORCH_TOKEN = process.env.VESSEL_ORCHESTRATOR_TOKEN || "vsl-orch-mvp-2026";
+const ORCH_TOKEN = process.env.CORIX_ORCHESTRATOR_TOKEN || "vsl-orch-mvp-2026";
 
 // Supabase config for auth verification
-const SUPABASE_URL = process.env.VESSEL_SUPABASE_URL || "";
-const SUPABASE_SERVICE_KEY = process.env.VESSEL_SUPABASE_SERVICE_KEY || "";
+const SUPABASE_URL = process.env.CORIX_SUPABASE_URL || "";
+const SUPABASE_SERVICE_KEY = process.env.CORIX_SUPABASE_SERVICE_KEY || "";
 
 function parseBody(req) {
   return new Promise((resolve) => {
@@ -40,7 +40,7 @@ function sendBinary(res, status, contentType, data) {
   res.end(data);
 }
 
-const INTERNAL_TOKEN = process.env.VESSEL_INTERNAL_TOKEN || "vsl-internal-mvp-2026";
+const INTERNAL_TOKEN = process.env.CORIX_INTERNAL_TOKEN || "vsl-internal-mvp-2026";
 
 // Verify auth: either vsl_ API key or internal server token
 async function verifyAuth(req) {
@@ -49,7 +49,7 @@ async function verifyAuth(req) {
 
   // Internal server-to-server token (from Vercel)
   if (token === INTERNAL_TOKEN) {
-    // user_id must be in X-Vessel-User-Id header
+    // user_id must be in X-Corix-User-Id header
     const userId = req.headers["x-vessel-user-id"];
     return userId || null;
   }

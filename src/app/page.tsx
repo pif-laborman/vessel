@@ -12,12 +12,12 @@ function Nav() {
               <path d="M2 12l10 5 10-5" />
             </svg>
           </div>
-          <span style={{ fontSize: 'var(--text-sm)' }}>Vessel</span>
+          <span style={{ fontSize: 'var(--text-sm)' }}>Corix</span>
         </Link>
         <div className="hidden sm:flex items-center gap-6">
           <Link href="/docs" className="transition-colors hover:opacity-70" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}>Docs</Link>
           <Link href="/pricing" className="transition-colors hover:opacity-70" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}>Pricing</Link>
-          <Link href="https://github.com/pif-laborman/vessel" className="transition-colors hover:opacity-70" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}>GitHub</Link>
+          <Link href="https://github.com/pif-laborman/corix" className="transition-colors hover:opacity-70" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}>GitHub</Link>
           <Link href="/login" className="btn-primary" style={{ padding: '6px 16px', fontSize: 'var(--text-sm)' }}>
             Start building
           </Link>
@@ -40,10 +40,10 @@ function HeroCode() {
       </div>
       <pre className="p-5 overflow-x-auto" style={{ fontSize: 'var(--text-sm)', lineHeight: 1.7, fontFamily: 'var(--font-mono)', background: 'var(--bg-page)' }}>
         <code>
-          <span style={{ color: '#7C3AED' }}>import</span> <span style={{ color: '#03A97E' }}>vessel</span>{"\n"}
+          <span style={{ color: '#7C3AED' }}>import</span> <span style={{ color: '#03A97E' }}>corix</span>{"\n"}
           {"\n"}
           <span style={{ color: 'var(--text-tertiary)' }}># Boot a desktop in &lt;500ms</span>{"\n"}
-          <span style={{ color: 'var(--text-primary)' }}>computer</span> <span style={{ color: 'var(--text-tertiary)' }}>=</span> <span style={{ color: '#03A97E' }}>vessel</span>.<span style={{ color: '#2563EB' }}>create</span>({"\n"}
+          <span style={{ color: 'var(--text-primary)' }}>computer</span> <span style={{ color: 'var(--text-tertiary)' }}>=</span> <span style={{ color: '#03A97E' }}>corix</span>.<span style={{ color: '#2563EB' }}>create</span>({"\n"}
           {"  "}<span style={{ color: '#B8860B' }}>os</span><span style={{ color: 'var(--text-tertiary)' }}>=</span><span style={{ color: '#03A97E' }}>&quot;linux&quot;</span>,{"\n"}
           {"  "}<span style={{ color: '#B8860B' }}>cpu</span><span style={{ color: 'var(--text-tertiary)' }}>=</span><span style={{ color: '#7C3AED' }}>2</span>,{"\n"}
           {"  "}<span style={{ color: '#B8860B' }}>ram</span><span style={{ color: 'var(--text-tertiary)' }}>=</span><span style={{ color: '#03A97E' }}>&quot;8gb&quot;</span>{"\n"}
@@ -58,7 +58,7 @@ function HeroCode() {
           <span style={{ color: 'var(--text-tertiary)' }}># Or control it directly</span>{"\n"}
           <span style={{ color: 'var(--text-primary)' }}>computer</span>.<span style={{ color: '#2563EB' }}>screenshot</span>(){"\n"}
           <span style={{ color: 'var(--text-primary)' }}>computer</span>.<span style={{ color: '#2563EB' }}>click</span>(<span style={{ color: '#7C3AED' }}>500</span>, <span style={{ color: '#7C3AED' }}>300</span>){"\n"}
-          <span style={{ color: 'var(--text-primary)' }}>computer</span>.<span style={{ color: '#2563EB' }}>type</span>(<span style={{ color: '#03A97E' }}>&quot;Hello from Vessel&quot;</span>){"\n"}
+          <span style={{ color: 'var(--text-primary)' }}>computer</span>.<span style={{ color: '#2563EB' }}>type</span>(<span style={{ color: '#03A97E' }}>&quot;Hello from Corix&quot;</span>){"\n"}
           <span style={{ color: 'var(--text-primary)' }}>computer</span>.<span style={{ color: '#2563EB' }}>bash</span>(<span style={{ color: '#03A97E' }}>&quot;ls -la /home&quot;</span>)
         </code>
       </pre>
@@ -181,7 +181,7 @@ function Footer() {
   return (
     <footer style={{ borderTop: '1px solid var(--border)' }}>
       <div className="max-w-5xl mx-auto px-6 flex items-center justify-between" style={{ paddingTop: 'var(--space-8)', paddingBottom: 'var(--space-8)' }}>
-        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>Vessel</span>
+        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>Corix</span>
         <div className="flex items-center gap-5">
           <Link href="/docs" className="hover:opacity-70 transition-opacity" style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>Docs</Link>
           <Link href="/pricing" className="hover:opacity-70 transition-opacity" style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>Pricing</Link>

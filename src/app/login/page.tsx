@@ -59,7 +59,7 @@ export default function LoginPage() {
                 <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
               </svg>
             </div>
-            <span style={{ fontSize: 'var(--text-lg)' }}>Vessel</span>
+            <span style={{ fontSize: 'var(--text-lg)' }}>Corix</span>
           </Link>
           <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 500, fontSize: 'var(--text-xl)', marginBottom: 'var(--space-1)' }}>Welcome back</h1>
           <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' }}>Sign in to your account to continue</p>

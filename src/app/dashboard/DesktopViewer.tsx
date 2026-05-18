@@ -15,7 +15,7 @@ const VNC_PORT_OFFSET = 100;
 function getVncUrl(hostname: string | null): string {
   const agentPort = hostname ? parseInt(hostname.split(":")[1] || "10000", 10) : 10000;
   const vncPort = agentPort + VNC_PORT_OFFSET;
-  return `https://meetpif.com/vessel-vnc/${vncPort}/vnc_lite.html?autoconnect=true&resize=scale&reconnect=true`;
+  return `https://meetpif.com/corix-vnc/${vncPort}/vnc_lite.html?autoconnect=true&resize=scale&reconnect=true`;
 }
 
 export function DesktopViewer({ computerId, computerName, hostname, onClose, inline }: Props) {

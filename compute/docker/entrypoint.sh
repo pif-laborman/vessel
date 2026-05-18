@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RESOLUTION="${VESSEL_RESOLUTION:-1280x720x24}"
+RESOLUTION="${CORIX_RESOLUTION:-1280x720x24}"
 
 # Clean up stale X lock files from previous runs (e.g. docker restart)
 rm -f /tmp/.X99-lock
@@ -47,4 +47,4 @@ x11vnc -display :99 -forever -shared -nopw -rfbport 5900 -bg -o /tmp/x11vnc.log
 websockify --web /usr/share/novnc 6080 localhost:5900 &
 
 # Start the Vessel agent
-exec node /opt/vessel-agent/server.js
+exec node /opt/corix-agent/server.js

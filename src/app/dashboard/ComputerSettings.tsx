@@ -49,7 +49,7 @@ export function ComputerSettings({ computer, onClose, onDelete, onRename }: Prop
   const [saving, setSaving] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const apiEndpoint = `https://meetpif.com/vessel-api/v1/computers/${computer.id}`;
+  const apiEndpoint = `https://meetpif.com/corix-api/v1/computers/${computer.id}`;
   const resolution = computer.resolution || "1280 x 720";
   const resDisplay = resolution.includes("x") ? resolution.replace(/x/g, " x ").replace(/x24/i, "").trim() : "1280 x 720";
 

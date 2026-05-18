@@ -3,16 +3,16 @@ const { execSync } = require("child_process");
 const crypto = require("crypto");
 
 const PORT = 8421;
-const IMAGE = "vessel-desktop:latest";
-const NETWORK = "vessel-ext";
+const IMAGE = "corix-desktop:latest";
+const NETWORK = "corix-ext";
 const PORT_RANGE_START = 10000;
 const PORT_RANGE_END = 10100;
 const VNC_PORT_OFFSET = 100; // noVNC port = agent port + 100
 const MAX_CONTAINERS = 2;
 const DEFAULT_CPU = 1;
 const DEFAULT_RAM = "2g";
-const LABEL = "vessel-computer";
-const AUTH_TOKEN = process.env.VESSEL_ORCHESTRATOR_TOKEN || "vsl-orch-secret";
+const LABEL = "corix-computer";
+const AUTH_TOKEN = process.env.CORIX_ORCHESTRATOR_TOKEN || "vsl-orch-secret";
 
 // Track containers: { containerId: { port, name, cpu, ram, createdAt } }
 const containers = new Map();
@@ -81,7 +81,7 @@ function createContainer(name, cpu, ram, resolution) {
   const cpuLimit = Math.min(cpu || DEFAULT_CPU, 2);
   const ramLimit = ram ? `${Math.min(ram, 4)}g` : DEFAULT_RAM;
   const res = resolution || "1280x720x24";
-  const containerName = `vessel-${name.replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}-${crypto.randomBytes(3).toString("hex")}`;
+  const containerName = `corix-${name.replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}-${crypto.randomBytes(3).toString("hex")}`;
 
   const vncPort = port + VNC_PORT_OFFSET;
 
@@ -96,7 +96,7 @@ function createContainer(name, cpu, ram, resolution) {
     `--network ${NETWORK}`,
     `-p ${port}:8420`,
     `-p ${vncPort}:6080`,
-    `-e VESSEL_RESOLUTION=${res}`,
+    `-e CORIX_RESOLUTION=${res}`,
     IMAGE,
   ].join(" ");
 
@@ -307,5 +307,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, "127.0.0.1", () => {
-  console.log(`Vessel orchestrator on port ${PORT} (max ${MAX_CONTAINERS} containers)`);
+  console.log(`Corix orchestrator on port ${PORT} (max ${MAX_CONTAINERS} containers)`);
 });

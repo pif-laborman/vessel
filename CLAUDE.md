@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# Vessel - Cloud Desktops for AI Agents
+# Corix - Cloud Desktops for AI Agents
 
 ## What this is
 Orgo competitor. API-first cloud desktop infrastructure that lets developers spin up virtual machines, connect AI agents, and let them control computers programmatically (screenshot, click, type, bash, python, files).
@@ -15,14 +15,14 @@ Orgo competitor. API-first cloud desktop infrastructure that lets developers spi
 - DESIGN.md has the full token reference
 
 ### Backend (VPS at meetpif.com)
-- **vessel-orchestrator** (port 8421, systemd) - manages Docker containers, proxies to agents
-- **vessel-api** (port 8422, systemd) - public API with auth, rate limiting, Supabase integration
-- **vessel-ws-terminal** (port 8423, systemd) - WebSocket terminal for interactive shell
-- **nginx proxy**: /vessel-api/ -> 8422, /vessel-ws/ -> 8423, /vessel-vnc/{port}/ -> noVNC
-- **env file**: /etc/vessel-api.env
+- **corix-orchestrator** (port 8421, systemd) - manages Docker containers, proxies to agents
+- **corix-api** (port 8422, systemd) - public API with auth, rate limiting, Supabase integration
+- **corix-ws-terminal** (port 8423, systemd) - WebSocket terminal for interactive shell
+- **nginx proxy**: /corix-api/ -> 8422, /corix-ws/ -> 8423, /corix-vnc/{port}/ -> noVNC
+- **env file**: /etc/corix-api.env
 - **cleanup cron**: every 5 min, kills containers older than 30 min
 
-### Container image (vessel-desktop:latest)
+### Container image (corix-desktop:latest)
 - Debian bookworm + XFCE + Xvfb + Google Chrome + Python + Node.js + git
 - WhiteSur Dark GTK theme (macOS-style traffic light buttons, dark windows)
 - WhiteSur Dark icon theme + WhiteSur cursors
@@ -35,7 +35,7 @@ Orgo competitor. API-first cloud desktop infrastructure that lets developers spi
 - XFCE compositor disabled for performance
 - Resource limits: max 2 CPU / 4 GB RAM per container, max 2 concurrent, PID limit 512
 
-### Database (Supabase project: vessel, ref: zyycljctvwquirciolfl)
+### Database (Supabase project: corix, ref: zyycljctvwquirciolfl)
 - **profiles**: auto-created on signup via trigger, tracks plan + limits + api_calls_today
 - **workspaces**: groups computers, has icon_url (uploaded to Supabase Storage)
 - **api_keys**: vsl_ prefix, SHA-256 hashed, key_prefix for display
@@ -46,9 +46,9 @@ Orgo competitor. API-first cloud desktop infrastructure that lets developers spi
 
 ### Credentials
 - Supabase Management API: Nango connector (supabase-management, connection 02d7a168)
-- GCP service account: /root/.gcp/vessel-sa.json (vessel-infra@vessel-496613, Owner role)
+- GCP service account: /root/.gcp/corix-sa.json (corix-infra@corix-496613, Owner role)
 - Google OAuth client: 607757625794-da5q70gteo8k9u1sf4p4uurmj6djn1pu.apps.googleusercontent.com
-- Vercel: pif-creds get Vercel, project "vessel" on piflaborman-1824s-projects
+- Vercel: pif-creds get Vercel, project "corix" on piflaborman-1824s-projects
 - Orchestrator token: vsl-orch-mvp-2026
 - Internal token (Vercel to VPS): vsl-internal-mvp-2026
 
@@ -66,7 +66,7 @@ Orgo competitor. API-first cloud desktop infrastructure that lets developers spi
 ## Desktop viewer
 - Uses noVNC (embedded iframe) for real-time VNC streaming
 - x11vnc captures Xvfb :99, websockify proxies ws://6080 -> vnc://5900
-- nginx at /vessel-vnc/{port}/ handles WebSocket upgrade
+- nginx at /corix-vnc/{port}/ handles WebSocket upgrade
 - The DesktopViewer component embeds vnc_lite.html with autoconnect + resize=scale
 - Sidebar thumbnails still use screenshot polling (JPEG, 5s intervals) via Vercel proxy
 
@@ -79,8 +79,8 @@ Orgo competitor. API-first cloud desktop infrastructure that lets developers spi
 - Events WebSocket (12 event types: window, clipboard, file, process, idle, audio)
 - Audio WebSocket streaming (PCM)
 - RTMP live video streaming
-- Published SDK packages (PyPI vessel-sdk, npm @vessel/sdk)
-- Custom domain (vesselcompute.com available)
+- Published SDK packages (PyPI corix-sdk, npm @corix/sdk)
+- Custom domain (corixcompute.com available)
 - GitHub OAuth (needs GitHub OAuth app setup in Supabase)
 - Stripe billing integration
 - Container image templates (pre-configured environments)
@@ -96,7 +96,7 @@ Orgo competitor. API-first cloud desktop infrastructure that lets developers spi
 - compute/docker/entrypoint.sh - startup: Xvfb -> dbus -> XFCE -> Plank -> x11vnc -> websockify -> agent
 - compute/docker/xfce-config/ - XFCE appearance configs (WhiteSur Dark theme, panel, desktop)
 - compute/docker/themes/ - pre-built WhiteSur GTK + icons + cursors (not all in git due to size)
-- compute/vessel-cleanup.sh - zombie container killer (cron)
+- compute/corix-cleanup.sh - zombie container killer (cron)
 - src/app/dashboard/DashboardShell.tsx - main dashboard (sidebar, views, state)
 - src/app/dashboard/DesktopViewer.tsx - noVNC iframe embed
 - src/app/dashboard/UnifiedSettings.tsx - settings modal (workspace, profile, computers)

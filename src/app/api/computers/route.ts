@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase-server";
 import { NextResponse } from "next/server";
 
-const VPS_API = process.env.VESSEL_VPS_API_URL || "https://meetpif.com/vessel-api";
-const INTERNAL_TOKEN = process.env.VESSEL_INTERNAL_TOKEN || "";
+const VPS_API = process.env.CORIX_VPS_API_URL || "https://meetpif.com/corix-api";
+const INTERNAL_TOKEN = process.env.CORIX_INTERNAL_TOKEN || "";
 
 async function vpsFetch(path: string, method: string, userId: string, body?: Record<string, unknown>) {
   const res = await fetch(`${VPS_API}${path}`, {
@@ -10,7 +10,7 @@ async function vpsFetch(path: string, method: string, userId: string, body?: Rec
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${INTERNAL_TOKEN}`,
-      "X-Vessel-User-Id": userId,
+      "X-Corix-User-Id": userId,
     },
     body: body ? JSON.stringify(body) : undefined,
   });

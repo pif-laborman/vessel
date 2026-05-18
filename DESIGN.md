@@ -1,4 +1,4 @@
-# Vessel Design System
+# Corix Design System
 
 Based on the Rekon Design System. Light, minimal, warm. Clean typography hierarchy with DM Sans for headlines and Inter for body text.
 

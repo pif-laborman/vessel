@@ -67,7 +67,7 @@ RUN convert -size 1280x720 \
     \( -size 500x300 radial-gradient:'#1e3a6e'-transparent -geometry +100+400 -compose over \) -composite \
     \( -size 300x300 radial-gradient:'#c7435520'-transparent -geometry +700+500 -compose over \) -composite \
     -blur 0x30 \
-    /usr/share/backgrounds/vessel-dark.png
+    /usr/share/backgrounds/corix-dark.png
 
 WORKDIR /root
 
@@ -90,12 +90,12 @@ RUN mkdir -p /root/.config/plank/dock1/launchers && \
     printf '[PlankDockItemPreferences]\nLauncher=file:///usr/share/applications/thunar.desktop\n' > /root/.config/plank/dock1/launchers/xfce4-file-manager.dockitem
 
 # Copy the agent
-COPY agent/server.js /opt/vessel-agent/server.js
+COPY agent/server.js /opt/corix-agent/server.js
 
 # Startup script
-COPY docker/entrypoint.sh /opt/vessel-agent/entrypoint.sh
-RUN chmod +x /opt/vessel-agent/entrypoint.sh
+COPY docker/entrypoint.sh /opt/corix-agent/entrypoint.sh
+RUN chmod +x /opt/corix-agent/entrypoint.sh
 
 EXPOSE 8420 6080
 
-ENTRYPOINT ["/opt/vessel-agent/entrypoint.sh"]
+ENTRYPOINT ["/opt/corix-agent/entrypoint.sh"]
