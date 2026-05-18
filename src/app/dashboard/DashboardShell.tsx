@@ -27,7 +27,7 @@ interface Computer {
   cpu: number;
   ram: number;
   status: string;
-  hostname: string | null;
+  hostname?: string | null;
   created_at: string;
 }
 
