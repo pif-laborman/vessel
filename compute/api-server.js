@@ -648,5 +648,5 @@ async function getContainerId(computerId, userId) {
 }
 
 server.listen(PORT, "127.0.0.1", () => {
-  console.log(`Vessel API server on port ${PORT}`);
+  console.log(`Corix API server on port ${PORT}`);
 });

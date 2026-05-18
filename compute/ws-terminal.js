@@ -131,5 +131,5 @@ wss.on("connection", async (ws, req) => {
 });
 
 server.listen(PORT, "127.0.0.1", () => {
-  console.log(`Vessel WebSocket terminal on port ${PORT}`);
+  console.log(`Corix WebSocket terminal on port ${PORT}`);
 });

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Kill Vessel containers running longer than 30 minutes
+# Kill Corix containers running longer than 30 minutes
 LABEL="corix-computer"
 MAX_AGE_SECONDS=1800
 
