@@ -17,9 +17,14 @@ for i in $(seq 1 30); do
     sleep 0.5
 done
 
-# Start dbus
+# Start dbus (session bus for Chrome and desktop apps)
 eval $(dbus-launch --sh-syntax)
 export DBUS_SESSION_BUS_ADDRESS
+
+# Generate machine-id for Chrome
+if [ ! -f /etc/machine-id ] || [ ! -s /etc/machine-id ]; then
+    cat /proc/sys/kernel/random/uuid | tr -d '-' > /etc/machine-id
+fi
 
 # Start XFCE desktop
 DISPLAY=:99 startxfce4 &
@@ -34,6 +39,12 @@ done
 
 # Start Plank dock (macOS-style bottom dock)
 DISPLAY=:99 plank &
+
+# Start x11vnc (VNC server on display :99, no password for internal use)
+x11vnc -display :99 -forever -shared -nopw -rfbport 5900 -bg -o /tmp/x11vnc.log
+
+# Start noVNC (WebSocket proxy: ws://localhost:6080 -> vnc://localhost:5900)
+websockify --web /usr/share/novnc 6080 localhost:5900 &
 
 # Start the Vessel agent
 exec node /opt/vessel-agent/server.js

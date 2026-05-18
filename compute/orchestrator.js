@@ -7,6 +7,7 @@ const IMAGE = "vessel-desktop:latest";
 const NETWORK = "vessel-ext";
 const PORT_RANGE_START = 10000;
 const PORT_RANGE_END = 10100;
+const VNC_PORT_OFFSET = 100; // noVNC port = agent port + 100
 const MAX_CONTAINERS = 2;
 const DEFAULT_CPU = 1;
 const DEFAULT_RAM = "2g";
@@ -82,6 +83,8 @@ function createContainer(name, cpu, ram, resolution) {
   const res = resolution || "1280x720x24";
   const containerName = `vessel-${name.replace(/[^a-zA-Z0-9]/g, "").toLowerCase()}-${crypto.randomBytes(3).toString("hex")}`;
 
+  const vncPort = port + VNC_PORT_OFFSET;
+
   const cmd = [
     "docker run -d",
     `--name ${containerName}`,
@@ -92,6 +95,7 @@ function createContainer(name, cpu, ram, resolution) {
     `--pids-limit=256`,
     `--network ${NETWORK}`,
     `-p ${port}:8420`,
+    `-p ${vncPort}:6080`,
     `-e VESSEL_RESOLUTION=${res}`,
     IMAGE,
   ].join(" ");
@@ -100,13 +104,14 @@ function createContainer(name, cpu, ram, resolution) {
 
   containers.set(containerId, {
     port,
+    vncPort,
     name: containerName,
     cpu: cpuLimit,
     ram: ramLimit,
     createdAt: new Date().toISOString(),
   });
 
-  return { id: containerId, port, name: containerName };
+  return { id: containerId, port, vncPort, name: containerName };
 }
 
 function stopContainer(containerId) {

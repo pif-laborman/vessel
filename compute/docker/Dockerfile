@@ -38,10 +38,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Google Chrome
+# Install Google Chrome + noVNC + x11vnc
 RUN curl -fsSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /tmp/chrome.deb && \
-    apt-get update && apt-get install -y /tmp/chrome.deb && \
+    apt-get update && apt-get install -y /tmp/chrome.deb x11vnc novnc websockify && \
     rm /tmp/chrome.deb && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Chrome wrapper: always run with --no-sandbox (required in containers)
+RUN mv /usr/bin/google-chrome-stable /usr/bin/google-chrome-stable-real && \
+    printf '#!/bin/bash\nexec /usr/bin/google-chrome-stable-real --no-sandbox --disable-gpu --disable-software-rasterizer "$@"\n' > /usr/bin/google-chrome-stable && \
+    chmod +x /usr/bin/google-chrome-stable && \
+    ln -sf /usr/bin/google-chrome-stable /usr/bin/google-chrome
 
 # Install pre-built WhiteSur GTK theme (macOS Dark)
 COPY docker/themes/gtk/WhiteSur-Dark /usr/share/themes/WhiteSur-Dark
@@ -90,6 +96,6 @@ COPY agent/server.js /opt/vessel-agent/server.js
 COPY docker/entrypoint.sh /opt/vessel-agent/entrypoint.sh
 RUN chmod +x /opt/vessel-agent/entrypoint.sh
 
-EXPOSE 8420
+EXPOSE 8420 6080
 
 ENTRYPOINT ["/opt/vessel-agent/entrypoint.sh"]
