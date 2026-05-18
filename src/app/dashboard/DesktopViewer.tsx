@@ -15,7 +15,7 @@ const VNC_PORT_OFFSET = 100;
 function getVncUrl(hostname?: string | null): string {
   const agentPort = hostname ? parseInt(hostname.split(":")[1] || "10000", 10) : 10000;
   const vncPort = agentPort + VNC_PORT_OFFSET;
-  return `https://compute.corix.dev/vnc/${vncPort}/vnc_lite.html?autoconnect=true&resize=scale&reconnect=true&path=vnc/${vncPort}/websockify`;
+  return `https://compute.corix.dev/vnc/${vncPort}/vnc_lite.html?autoconnect=true&resize=scale&reconnect=true&path=vnc/${vncPort}/`;
 }
 
 export function DesktopViewer({ computerId, computerName, hostname, onClose, inline }: Props) {
