@@ -50,7 +50,7 @@ async function verifyAuth(req) {
   // Internal server-to-server token (from Vercel)
   if (token === INTERNAL_TOKEN) {
     // user_id must be in X-Corix-User-Id header
-    const userId = req.headers["x-vessel-user-id"];
+    const userId = req.headers["x-corix-user-id"];
     return userId || null;
   }
 
