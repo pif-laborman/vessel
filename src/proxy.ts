@@ -2,6 +2,20 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function proxy(request: NextRequest) {
+  // docs.corix.dev -> rewrite to /docs
+  const host = request.headers.get("host") || "";
+  if (host.startsWith("docs.")) {
+    const url = request.nextUrl.clone();
+    if (url.pathname === "/") {
+      url.pathname = "/docs";
+      return NextResponse.rewrite(url);
+    }
+    if (!url.pathname.startsWith("/docs")) {
+      url.pathname = `/docs${url.pathname}`;
+      return NextResponse.rewrite(url);
+    }
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -47,5 +61,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/login", "/", "/docs/:path*"],
 };
